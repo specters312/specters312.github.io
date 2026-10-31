@@ -194,6 +194,24 @@
       <p class="note">The page reads at most 256 KiB for a preview and displays at most 8 KiB as hex. Selection handles and file contents are not stored in <code>localStorage</code> and disappear when the page is closed or refreshed.</p>
     </section>
 
+    <section class="panel webfs-card">
+      <h2>Safe HyperOS handler probes</h2>
+      <p class="sub">Download inert canary files to identify which HyperOS application claims each extension or MIME type. These samples contain no shell command, executable payload, explicit Android component, script import, external entity, or remote media. A file opening successfully proves handler dispatch only—not shell access or code execution.</p>
+      <div class="buttons">
+        <a class="download" href="downloads/hyperos-handler-probe-pack.zip" download>Download all 32 probes (.zip)</a>
+        <a class="download" href="downloads/hyperos-handler-probes/SHA256SUMS" download>Download checksums</a>
+        <a class="download" href="downloads/hyperos-handler-probes/README.txt" download>Read test notes</a>
+      </div>
+      <p class="note">Pack SHA-256: <code>fcf4ffb6af3764bf06ce324303ec2803c57bab700eda8fee279dc440ef78d710</code><br>Canary: <code>HYPEROS_HANDLER_PROBE_20261031_7F3A</code></p>
+      <div class="table-wrap webfs-table">
+        <table>
+          <thead><tr><th>Format</th><th>Purpose</th><th>Probe</th></tr></thead>
+          <tbody id="probe-format-rows"></tbody>
+        </table>
+      </div>
+      <p class="note">The code-like extensions are deliberately inert: <code>.sh</code> has no shebang or commands, <code>.desktop</code> is <code>Type=Link</code> with no <code>Exec</code>, and the Python/JavaScript/Lua files contain only a canary constant.</p>
+    </section>
+
     <div class="layout">
       <div class="stack">
         <section class="panel">
@@ -336,6 +354,19 @@
     const MAX_ATTEMPTS = 1000;
     const WEBFS_PREVIEW_LIMIT = 256 * 1024;
     const WEBFS_HEX_LIMIT = 8 * 1024;
+    const SAFE_HANDLER_PROBES = [
+      ["txt", "plain text"], ["md", "Markdown"], ["json", "structured data"],
+      ["xml", "generic XML"], ["xhtml", "XML/HTML document"], ["html", "static HTML"],
+      ["svg", "static vector image"], ["csv", "tabular data"], ["rtf", "rich text"],
+      ["vcf", "contact import"], ["ics", "calendar import"], ["gpx", "GPS exchange"],
+      ["kml", "map markup"], ["opml", "outline/import"], ["m3u", "empty playlist"],
+      ["pls", "empty playlist"], ["smil", "empty media presentation"], ["xspf", "empty playlist"],
+      ["srt", "subtitle text"], ["url", "web shortcut"], ["webloc", "web shortcut"],
+      ["desktop", "link-only desktop entry"], ["yaml", "configuration data"], ["toml", "configuration data"],
+      ["ini", "configuration data"], ["properties", "configuration data"], ["conf", "configuration text"],
+      ["log", "log text"], ["sh", "inert shell-source text"], ["py", "inert Python source"],
+      ["js", "inert JavaScript source"], ["lua", "inert Lua source"]
+    ];
     const actionPattern = /^[A-Za-z0-9_$]+(?:\.[A-Za-z0-9_$]+)+$/;
 
     const corpus = document.querySelector("#corpus");
@@ -498,6 +529,14 @@
 
     function escapeHtml(value) {
       return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
+    }
+
+    function renderSafeHandlerProbes() {
+      document.querySelector("#probe-format-rows").innerHTML = SAFE_HANDLER_PROBES.map(([extension, purpose]) => `<tr>
+        <td><code>.${escapeHtml(extension)}</code></td>
+        <td>${escapeHtml(purpose)}</td>
+        <td><a href="downloads/hyperos-handler-probes/probe.${encodeURIComponent(extension)}" download>Download probe.${escapeHtml(extension)}</a></td>
+      </tr>`).join("");
     }
 
     function formatBytes(value) {
@@ -896,6 +935,7 @@
 
     processFallback();
     if (!corpus.value) corpus.value = COMMON_ACTIONS.join("\n");
+    renderSafeHandlerProbes();
     renderBrowserFs();
     render();
   </script>
