@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d12">
+  <meta name="description" content="One-tap Android Settings intent links and copyable ADB shortcuts.">
+  <title>Android Quick Links</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080d12;
+      --panel: #101821;
+      --panel2: #152231;
+      --ink: #edf6ff;
+      --muted: #9badc0;
+      --line: #26384a;
+      --blue: #69b9ff;
+      --green: #61d69c;
+      --orange: #ff9650;
+      --red: #ff7777;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% -6%, rgba(63, 143, 255, .22), transparent 33rem),
+        radial-gradient(circle at 96% 0, rgba(255, 122, 42, .13), transparent 28rem),
+        var(--bg);
+    }
+
+    button, input { font: inherit; }
+    a { color: inherit; }
+
+    .wrap {
+      width: min(1120px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 46px 0 74px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+
+    .kicker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--green);
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .kicker::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 16px var(--green);
+    }
+
+    h1 {
+      margin: 10px 0 10px;
+      font-size: clamp(2.4rem, 7vw, 5rem);
+      line-height: .94;
+      letter-spacing: -.065em;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.03rem;
+      line-height: 1.6;
+    }
+
+    .stamp {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(12, 19, 27, .76);
+      font-size: .75rem;
+      white-space: nowrap;
+    }
+
+    .how {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin: 0 0 22px;
+    }
+
+    .how div {
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      color: var(--muted);
+      background: rgba(16, 24, 33, .75);
+      font-size: .84rem;
+      line-height: 1.45;
+    }
+
+    .how strong { color: var(--ink); }
+
+    .toolbar {
+      position: sticky;
+      top: 8px;
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 22px;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(8, 13, 18, .9);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, .25);
+    }
+
+    .toolbar input {
+      width: 100%;
+      min-width: 0;
+      padding: 12px 14px;
+      border: 0;
+      border-radius: 11px;
+      outline: 0;
+      color: var(--ink);
+      background: var(--panel2);
+    }
+
+    .toolbar a {
+      display: grid;
+      place-items: center;
+      padding: 0 15px;
+      border: 1px solid #35516c;
+      border-radius: 11px;
+      color: #cfe6ff;
+      text-decoration: none;
+      font-size: .84rem;
+      font-weight: 700;
+    }
+
+    section { margin-top: 30px; }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: baseline;
+      margin-bottom: 12px;
+    }
+
+    h2 { margin: 0; font-size: 1.2rem; letter-spacing: -.025em; }
+    .section-head span { color: var(--muted); font-size: .78rem; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      display: flex;
+      min-width: 0;
+      min-height: 154px;
+      flex-direction: column;
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(21, 34, 49, .92), rgba(13, 20, 28, .94));
+      box-shadow: 0 16px 42px rgba(0, 0, 0, .18);
+    }
+
+    .card.hidden { display: none; }
+    .card h3 { margin: 0 0 5px; font-size: .98rem; }
+    .card p { margin: 0; color: var(--muted); font-size: .79rem; line-height: 1.45; }
+    .action { margin-top: auto; padding-top: 15px; display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+
+    .open, .copy, .copy-wide {
+      border: 1px solid transparent;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      font-size: .8rem;
+      font-weight: 800;
+      transition: transform .14s ease, filter .14s ease;
+    }
+
+    .open:hover, .copy:hover, .copy-wide:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    .open { padding: 10px 12px; color: #061523; background: var(--blue); }
+    .copy { padding: 10px 12px; color: #c8dcf1; border-color: #32485e; background: #111c27; }
+    .copy-wide { padding: 10px 12px; color: #c8dcf1; border-color: #32485e; background: #111c27; }
+
+    .boot-box {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 18px;
+      padding: 20px;
+      border: 1px solid rgba(255, 150, 80, .42);
+      border-radius: 17px;
+      background: rgba(255, 150, 80, .065);
+    }
+
+    .boot-box h2 { margin-bottom: 7px; color: #ffd3b5; }
+    .boot-box p { margin: 0; color: #d6b69f; font-size: .87rem; line-height: 1.55; }
+    .boot-commands { display: grid; gap: 8px; }
+    .command {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 11px 12px;
+      border: 1px solid #4a3b33;
+      border-radius: 11px;
+      background: #0b0e12;
+    }
+
+    code { color: #cce5ff; font: .8rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+    .command button { border: 0; color: var(--orange); background: transparent; cursor: pointer; font-weight: 800; }
+
+    .custom {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: var(--panel);
+    }
+
+    .custom input {
+      min-width: 0;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      outline: 0;
+      color: var(--ink);
+      background: #0a1118;
+    }
+
+    .custom button {
+      padding: 0 14px;
+      border: 1px solid #3c5872;
+      border-radius: 10px;
+      color: #d6eaff;
+      background: #17283a;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .docs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .docs a {
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .77rem;
+      background: var(--panel);
+    }
+
+    footer { margin-top: 32px; color: var(--muted); text-align: center; font-size: .76rem; line-height: 1.55; }
+
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 20;
+      max-width: min(360px, calc(100% - 32px));
+      padding: 11px 14px;
+      border: 1px solid #396047;
+      border-radius: 11px;
+      color: #d7ffe8;
+      background: #10271a;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, .38);
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 850px) {
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .boot-box { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 590px) {
+      .wrap { width: min(100% - 18px, 1120px); padding-top: 28px; }
+      header { grid-template-columns: 1fr; align-items: start; }
+      .stamp { width: fit-content; }
+      .how, .cards { grid-template-columns: 1fr; }
+      .toolbar { grid-template-columns: 1fr; position: static; }
+      .toolbar a { padding: 10px; }
+      .custom { grid-template-columns: 1fr 1fr; }
+      .custom input { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div>
+        <div class="kicker">Tap on Android</div>
+        <h1>Android Quick Links</h1>
+        <p class="lead">Open Android settings panels with one tap. Each card also copies the equivalent ADB command for devices where the browser or OEM blocks the hyperlink.</p>
+      </div>
+      <div class="stamp">Official Android actions · 31 Oct 2026</div>
+    </header>
+
+    <div class="how">
+      <div><strong>1.</strong> Open this page in Chrome on the Android device.</div>
+      <div><strong>2.</strong> Tap <em>Open</em>; Android asks which compatible activity should handle it.</div>
+      <div><strong>3.</strong> If an OEM removed that activity, copy the ADB fallback instead.</div>
+    </div>
+
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Filter: developer, Wi-Fi, USB, accessibility…" autocomplete="off" aria-label="Filter settings links">
+      <a href="#boot">Boot modes</a>
+    </div>
+
+    <div id="settings-root"></div>
+
+    <section id="boot">
+      <div class="boot-box">
+        <div>
+          <h2>Can a hyperlink force fastboot?</h2>
+          <p><strong>No—not on a correctly secured Android build.</strong> A normal webpage can request an exported Settings activity after a user tap, but it cannot silently reboot the device. Rebooting requires Android's privileged <code>android.permission.REBOOT</code>, which is unavailable to ordinary browsers and third-party apps. If USB debugging is already authorized, use ADB.</p>
+        </div>
+        <div class="boot-commands">
+          <div class="command"><code>adb reboot bootloader</code><button data-copy="adb reboot bootloader">Copy</button></div>
+          <div class="command"><code>adb reboot fastboot</code><button data-copy="adb reboot fastboot">Copy</button></div>
+          <div class="command"><code>adb reboot recovery</code><button data-copy="adb reboot recovery">Copy</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <h2>Custom Android action</h2>
+        <span>For a documented or vendor-specific action</span>
+      </div>
+      <div class="custom">
+        <input id="custom-action" value="android.settings.SETTINGS" aria-label="Android intent action">
+        <button id="custom-open">Open</button>
+        <button id="custom-copy">Copy ADB</button>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Primary documentation</h2><span>Verify behavior and API support</span></div>
+      <div class="docs">
+        <a href="https://developer.android.com/reference/android/provider/Settings" rel="noreferrer">Android Settings actions ↗</a>
+        <a href="https://developer.chrome.com/docs/android/intents" rel="noreferrer">Chrome intent links ↗</a>
+        <a href="https://developer.android.com/reference/android/Manifest.permission#REBOOT" rel="noreferrer">REBOOT permission ↗</a>
+        <a href="https://developer.android.com/tools/adb" rel="noreferrer">ADB reference ↗</a>
+        <a href="https://developer.android.com/tools/releases/platform-tools" rel="noreferrer">Platform-Tools ↗</a>
+      </div>
+    </section>
+
+    <footer>Intent availability varies by Android version and OEM. Every launch requires a user tap; this page does not bypass lock screens, permissions, USB-debug authorization, or device policy.</footer>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const groups = [
+      {
+        title: "Core + development",
+        note: "System overview and debugging panels",
+        items: [
+          ["System Settings", "Top-level Android Settings", "android.settings.SETTINGS"],
+          ["Developer Options", "USB debugging, debugging features, and developer controls", "android.settings.APPLICATION_DEVELOPMENT_SETTINGS"],
+          ["About Device", "Build number, software version, and device details", "android.settings.DEVICE_INFO_SETTINGS"],
+          ["USB Settings", "USB connection preferences when the OEM exposes this activity", "android.settings.USB_SETTINGS"],
+          ["Testing Settings", "Testing panel when present on the build", "android.settings.TESTING_SETTINGS"],
+          ["Regulatory Information", "Device regulatory information screen", "android.settings.SHOW_REGULATORY_INFO"]
+        ]
+      },
+      {
+        title: "Network + radios",
+        note: "Wi-Fi, Bluetooth, cellular, NFC, and casting",
+        items: [
+          ["Wi-Fi", "Configure and join Wi-Fi networks", "android.settings.WIFI_SETTINGS"],
+          ["Wi-Fi IP", "Static IP and advanced Wi-Fi configuration", "android.settings.WIFI_IP_SETTINGS"],
+          ["Bluetooth", "Pair and manage Bluetooth devices", "android.settings.BLUETOOTH_SETTINGS"],
+          ["Wireless", "Combined wireless and network controls", "android.settings.WIRELESS_SETTINGS"],
+          ["Internet Panel", "Compact internet connectivity panel on Android 10+", "android.settings.panel.action.INTERNET_CONNECTIVITY"],
+          ["Wi-Fi Panel", "Compact Wi-Fi panel on Android 10+", "android.settings.panel.action.WIFI"],
+          ["NFC", "Near-field communication settings", "android.settings.NFC_SETTINGS"],
+          ["NFC Panel", "Compact NFC panel on Android 10+", "android.settings.panel.action.NFC"],
+          ["Airplane Mode", "Airplane mode settings", "android.settings.AIRPLANE_MODE_SETTINGS"],
+          ["Mobile Network", "Cellular network settings", "android.settings.NETWORK_OPERATOR_SETTINGS"],
+          ["Data Roaming", "Cellular data and roaming settings", "android.settings.DATA_ROAMING_SETTINGS"],
+          ["VPN", "Configured VPN connections", "android.settings.VPN_SETTINGS"],
+          ["Cast", "Wireless display and cast endpoints", "android.settings.CAST_SETTINGS"],
+          ["Wi-Fi Easy Connect", "Process a Wi-Fi DPP URI; requires URI input from an app", "android.settings.PROCESS_WIFI_EASY_CONNECT_URI"]
+        ]
+      },
+      {
+        title: "Apps + permissions",
+        note: "Application management and special access",
+        items: [
+          ["All Apps", "Manage installed applications", "android.settings.MANAGE_APPLICATIONS_SETTINGS"],
+          ["Default Apps", "Choose default handlers", "android.settings.MANAGE_DEFAULT_APPS_SETTINGS"],
+          ["Unknown App Sources", "Manage permission to install unknown apps", "android.settings.MANAGE_UNKNOWN_APP_SOURCES"],
+          ["Notification Access", "Apps allowed to read notifications", "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"],
+          ["Usage Access", "Apps allowed to inspect usage statistics", "android.settings.USAGE_ACCESS_SETTINGS"],
+          ["Overlay Access", "Apps allowed to display over other apps", "android.settings.action.MANAGE_OVERLAY_PERMISSION"],
+          ["All Files Access", "Apps with broad external-storage access", "android.settings.MANAGE_ALL_FILES_ACCESS_PERMISSION"],
+          ["Modify System Settings", "Apps allowed to write system settings", "android.settings.action.MANAGE_WRITE_SETTINGS"],
+          ["Notification Policy Access", "Do Not Disturb control access", "android.settings.NOTIFICATION_POLICY_ACCESS_SETTINGS"],
+          ["Ignore Battery Optimizations", "Battery-optimization exemptions", "android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS"]
+        ]
+      },
+      {
+        title: "Display + sound",
+        note: "User-interface and media controls",
+        items: [
+          ["Display", "Brightness, timeout, theme, and display controls", "android.settings.DISPLAY_SETTINGS"],
+          ["Sound", "Sound and vibration settings", "android.settings.SOUND_SETTINGS"],
+          ["Volume Panel", "Compact volume panel on Android 10+", "android.settings.panel.action.VOLUME"],
+          ["Notifications", "System notification settings", "android.settings.NOTIFICATION_SETTINGS"],
+          ["Do Not Disturb", "Zen mode priority configuration", "android.settings.ZEN_MODE_PRIORITY_SETTINGS"],
+          ["Auto Rotate", "Screen-rotation settings", "android.settings.AUTO_ROTATE_SETTINGS"],
+          ["Home App", "Choose the default launcher", "android.settings.HOME_SETTINGS"],
+          ["Captioning", "System captions and subtitle appearance", "android.settings.CAPTIONING_SETTINGS"]
+        ]
+      },
+      {
+        title: "Security + privacy",
+        note: "Device security, biometrics, location, and privacy",
+        items: [
+          ["Security", "Security and lock settings", "android.settings.SECURITY_SETTINGS"],
+          ["Privacy", "Privacy controls and permission dashboard", "android.settings.PRIVACY_SETTINGS"],
+          ["Location", "Location services and sources", "android.settings.LOCATION_SOURCE_SETTINGS"],
+          ["Biometric Enrollment", "Enroll supported biometrics", "android.settings.BIOMETRIC_ENROLL"],
+          ["Credentials", "Trusted credentials and certificate storage", "android.settings.TRUSTED_CREDENTIALS_USER"],
+          ["Device Administrators", "Active device-admin applications", "android.settings.DEVICE_ADMIN_SETTINGS"],
+          ["Encryption + Credentials", "Encryption and credential settings when available", "android.settings.SECURITY_SETTINGS"]
+        ]
+      },
+      {
+        title: "System + accessibility",
+        note: "Storage, input, language, battery, and accessibility",
+        items: [
+          ["Accessibility", "Accessibility services and controls", "android.settings.ACCESSIBILITY_SETTINGS"],
+          ["Input Methods", "Keyboards and input-method settings", "android.settings.INPUT_METHOD_SETTINGS"],
+          ["Physical Keyboard", "Hardware keyboard layout and settings", "android.settings.HARD_KEYBOARD_SETTINGS"],
+          ["Language", "System language and locale", "android.settings.LOCALE_SETTINGS"],
+          ["Date + Time", "Time, date, and timezone configuration", "android.settings.DATE_SETTINGS"],
+          ["Internal Storage", "Internal storage usage", "android.settings.INTERNAL_STORAGE_SETTINGS"],
+          ["Storage", "Storage settings", "android.settings.MEMORY_CARD_SETTINGS"],
+          ["Battery Saver", "Battery-saver configuration", "android.settings.BATTERY_SAVER_SETTINGS"],
+          ["Print", "Print services and printers", "android.settings.ACTION_PRINT_SETTINGS"],
+          ["Accounts", "System account management", "android.settings.SYNC_SETTINGS"]
+        ]
+      }
+    ];
+
+    const root = document.querySelector("#settings-root");
+    const toast = document.querySelector("#toast");
+
+    function intentUri(action) {
+      return `intent:#Intent;action=${action};end`;
+    }
+
+    function adbCommand(action) {
+      return `adb shell am start -a ${action}`;
+    }
+
+    groups.forEach((group) => {
+      const section = document.createElement("section");
+      section.innerHTML = `<div class="section-head"><h2>${group.title}</h2><span>${group.note}</span></div><div class="cards"></div>`;
+      const cards = section.querySelector(".cards");
+
+      group.items.forEach(([name, description, action]) => {
+        const card = document.createElement("article");
+        card.className = "card";
+        card.dataset.search = `${name} ${description} ${action}`.toLowerCase();
+        card.innerHTML = `
+          <h3>${name}</h3>
+          <p>${description}</p>
+          <div class="action">
+            <a class="open" href="${intentUri(action)}">Open</a>
+            <button class="copy" data-copy="${adbCommand(action)}">ADB</button>
+          </div>`;
+        cards.appendChild(card);
+      });
+
+      root.appendChild(section);
+    });
+
+    let toastTimer;
+    async function copyText(value) {
+      try {
+        await navigator.clipboard.writeText(value);
+        toast.textContent = `Copied: ${value}`;
+      } catch {
+        const area = document.createElement("textarea");
+        area.value = value;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+        toast.textContent = `Copied: ${value}`;
+      }
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-copy]");
+      if (button) copyText(button.dataset.copy);
+    });
+
+    document.querySelector("#search").addEventListener("input", (event) => {
+      const value = event.target.value.trim().toLowerCase();
+      document.querySelectorAll(".card").forEach((card) => {
+        card.classList.toggle("hidden", value && !card.dataset.search.includes(value));
+      });
+    });
+
+    document.querySelector("#custom-open").addEventListener("click", () => {
+      const action = document.querySelector("#custom-action").value.trim();
+      if (action) window.location.href = intentUri(action);
+    });
+
+    document.querySelector("#custom-copy").addEventListener("click", () => {
+      const action = document.querySelector("#custom-action").value.trim();
+      if (action) copyText(adbCommand(action));
+    });
+  </script>
+</body>
+</html>
