@@ -45,7 +45,7 @@
 
     header {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: 1fr auto auto;
       gap: 24px;
       align-items: end;
       margin-bottom: 28px;
@@ -324,19 +324,20 @@
       <div>
         <div class="kicker">Tap on Android</div>
         <h1>Android Quick Links</h1>
-        <p class="lead">Open Android settings panels with one tap. Each card also copies the equivalent ADB command for devices where the browser or OEM blocks the hyperlink.</p>
+        <p class="lead">Test Android settings actions with one tap. Each card also copies the equivalent ADB command for devices where Chrome or the OEM does not expose a browser-launchable activity.</p>
       </div>
       <div class="stamp">Official Android actions · 31 Oct 2026</div>
     </header>
 
     <div class="how">
       <div><strong>1.</strong> Open this page in Chrome on the Android device.</div>
-      <div><strong>2.</strong> Tap <em>Open</em>; Android asks which compatible activity should handle it.</div>
+      <div><strong>2.</strong> Tap <em>Open</em>; Chrome can launch only an activity that declares the <code>BROWSABLE</code> category.</div>
       <div><strong>3.</strong> If an OEM removed that activity, copy the ADB fallback instead.</div>
     </div>
 
     <div class="toolbar">
       <input id="search" type="search" placeholder="Filter: developer, Wi-Fi, USB, accessibility…" autocomplete="off" aria-label="Filter settings links">
+      <a href="intent-lab.html">Intent Lab</a>
       <a href="#boot">Boot modes</a>
     </div>
 
@@ -379,7 +380,7 @@
       </div>
     </section>
 
-    <footer>Intent availability varies by Android version and OEM. Every launch requires a user tap; this page does not bypass lock screens, permissions, USB-debug authorization, or device policy.</footer>
+    <footer>Intent availability varies by Android version and OEM. Chrome requires a user gesture and a matching <code>BROWSABLE</code> activity. This page does not bypass lock screens, permissions, USB-debug authorization, or device policy.</footer>
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>

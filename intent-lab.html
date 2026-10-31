@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d12">
+  <meta name="description" content="Controlled Android browser-intent test runner with local logs.">
+  <title>Android Intent Lab</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080d12;
+      --panel: #111a24;
+      --panel2: #172534;
+      --ink: #edf6ff;
+      --muted: #9cafc3;
+      --line: #293b4e;
+      --blue: #68b9ff;
+      --green: #64daa0;
+      --orange: #ff9b57;
+      --red: #ff7c7c;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% -5%, rgba(56, 145, 255, .22), transparent 32rem),
+        radial-gradient(circle at 100% 4%, rgba(255, 137, 56, .14), transparent 28rem),
+        var(--bg);
+    }
+
+    button, textarea { font: inherit; }
+    a { color: var(--blue); }
+    code { color: #cae5ff; font: .82em/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+
+    .wrap { width: min(1120px, calc(100% - 24px)); margin: 0 auto; padding: 34px 0 70px; }
+    nav { margin-bottom: 24px; }
+    nav a { color: var(--muted); text-decoration: none; font-size: .84rem; }
+
+    header { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: end; margin-bottom: 22px; }
+    .kicker { color: var(--green); font-size: .74rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin: 9px 0 10px; font-size: clamp(2.35rem, 7vw, 4.9rem); line-height: .96; letter-spacing: -.06em; }
+    .lead { max-width: 750px; margin: 0; color: var(--muted); line-height: 1.6; }
+    .local { padding: 9px 12px; border: 1px solid #315440; border-radius: 999px; color: #bff5d5; background: rgba(32, 105, 63, .16); font-size: .75rem; white-space: nowrap; }
+
+    .limits {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .limits div { padding: 13px 14px; border: 1px solid var(--line); border-radius: 13px; color: var(--muted); background: rgba(17, 26, 36, .82); font-size: .82rem; line-height: 1.48; }
+    .limits strong { color: var(--ink); }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(330px, .9fr); gap: 16px; align-items: start; }
+    .stack { display: grid; gap: 16px; }
+    .panel { padding: 18px; border: 1px solid var(--line); border-radius: 17px; background: linear-gradient(145deg, rgba(21, 34, 48, .94), rgba(13, 20, 28, .96)); box-shadow: 0 16px 42px rgba(0, 0, 0, .18); }
+    .panel h2 { margin: 0 0 5px; font-size: 1.04rem; }
+    .panel .sub { margin: 0 0 14px; color: var(--muted); font-size: .79rem; line-height: 1.48; }
+
+    textarea {
+      width: 100%;
+      min-height: 255px;
+      resize: vertical;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      outline: 0;
+      color: #d9ecff;
+      background: #080e14;
+      font: .78rem/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    textarea:focus { border-color: #3f6a91; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 11px; }
+    button { padding: 9px 12px; border: 1px solid #35506a; border-radius: 10px; color: #d9ecff; background: #17283a; cursor: pointer; font-size: .79rem; font-weight: 800; }
+    button:hover { filter: brightness(1.1); }
+    button.primary { color: #071624; border-color: transparent; background: var(--blue); }
+    button.good { color: #082016; border-color: transparent; background: var(--green); }
+    button.warn { color: #241207; border-color: transparent; background: var(--orange); }
+    button.danger { color: #ffd9d9; border-color: #653939; background: #351a1a; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+
+    .runner { display: grid; gap: 13px; }
+    .progress { color: var(--muted); font-size: .78rem; }
+    .current { min-height: 70px; padding: 13px; border: 1px solid var(--line); border-radius: 12px; background: #080e14; }
+    .current small { display: block; margin-bottom: 6px; color: var(--muted); }
+    .current code { font-size: .82rem; }
+    .uri { max-height: 92px; overflow: auto; padding: 10px; border: 1px dashed #344a60; border-radius: 10px; color: #8eabc5; background: rgba(0, 0, 0, .14); font: .7rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .stat { padding: 11px; border: 1px solid var(--line); border-radius: 11px; background: rgba(8, 14, 20, .55); }
+    .stat strong { display: block; font-size: 1.3rem; }
+    .stat span { color: var(--muted); font-size: .68rem; }
+
+    .manual { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .manual button { white-space: normal; }
+
+    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: .74rem; }
+    th, td { padding: 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { position: sticky; top: 0; color: var(--muted); background: #101923; }
+    tr:last-child td { border-bottom: 0; }
+    td code { font-size: .72rem; }
+    .status { display: inline-block; padding: 3px 6px; border: 1px solid #3a5065; border-radius: 999px; color: #bed6ed; white-space: nowrap; }
+    .status.fallback { color: #ffd2b4; border-color: #624831; }
+    .status.returned { color: #c8f7d9; border-color: #356149; }
+
+    .note { margin-top: 15px; color: var(--muted); font-size: .76rem; line-height: 1.5; }
+    footer { margin-top: 28px; color: var(--muted); font-size: .75rem; line-height: 1.55; text-align: center; }
+
+    .toast { position: fixed; right: 14px; bottom: 14px; z-index: 20; max-width: min(380px, calc(100% - 28px)); padding: 11px 14px; border: 1px solid #396047; border-radius: 11px; color: #d7ffe8; background: #10271a; opacity: 0; transform: translateY(8px); pointer-events: none; transition: .2s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+      .limits { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .wrap { width: min(100% - 16px, 1120px); padding-top: 22px; }
+      header { grid-template-columns: 1fr; align-items: start; }
+      .local { width: fit-content; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <nav><a href="index.html">← Android Quick Links</a></nav>
+
+    <header>
+      <div>
+        <div class="kicker">Controlled action-only runner</div>
+        <h1>Android Intent Lab</h1>
+        <p class="lead">Test a corpus of Android intent actions one at a time from Chrome, record browser fallback and page lifecycle signals, confirm outcomes manually, and export the resulting log.</p>
+      </div>
+      <div class="local">Local logs only</div>
+    </header>
+
+    <div class="limits">
+      <div><strong>One tap per case.</strong> Chrome blocks external-app launches from timers or scripts without a user gesture.</div>
+      <div><strong>BROWSABLE only.</strong> A browser can invoke only matching activities that declare <code>android.intent.category.BROWSABLE</code>.</div>
+      <div><strong>Evidence, not certainty.</strong> Fallback is explicit; visibility and focus signals only suggest an activity or chooser opened.</div>
+    </div>
+
+    <div class="layout">
+      <div class="stack">
+        <section class="panel">
+          <h2>Action corpus</h2>
+          <p class="sub">One exact action per line. Blank lines and lines beginning with <code>#</code> are ignored. This runner intentionally does not accept components, packages, data URIs, or extras.</p>
+          <textarea id="corpus" spellcheck="false" aria-label="Intent action corpus"></textarea>
+          <div class="buttons">
+            <button id="load-common">Load common Settings corpus</button>
+            <button id="normalize">Normalize + deduplicate</button>
+            <button id="start" class="primary">Start new run</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Attempt log</h2>
+          <p class="sub">Newest attempts appear first. Each record contains the intent URI, browser lifecycle events, inferred state, and any manual outcome.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Time</th><th>Action</th><th>Status</th><th>Away</th><th>Manual</th></tr></thead>
+              <tbody id="log-body"></tbody>
+            </table>
+          </div>
+          <div class="buttons">
+            <button id="export-json">Export JSON</button>
+            <button id="export-csv">Export CSV</button>
+            <button id="clear-logs" class="danger">Clear local logs</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="stack">
+        <section class="panel runner">
+          <div>
+            <h2>Runner</h2>
+            <p class="sub">The queue advances before each launch so returning to this page is enough to continue.</p>
+          </div>
+          <div id="progress" class="progress">No active run</div>
+          <div class="current"><small>Current action</small><code id="current-action">—</code></div>
+          <div id="current-uri" class="uri">—</div>
+          <div class="buttons">
+            <button id="test-next" class="good" disabled>Test next action</button>
+            <button id="skip" disabled>Skip</button>
+            <button id="copy-uri" disabled>Copy intent URI</button>
+          </div>
+          <div class="stats">
+            <div class="stat"><strong id="stat-total">0</strong><span>Corpus</span></div>
+            <div class="stat"><strong id="stat-attempts">0</strong><span>Attempts</span></div>
+            <div class="stat"><strong id="stat-fallback">0</strong><span>Fallbacks</span></div>
+            <div class="stat"><strong id="stat-returned">0</strong><span>Returned</span></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Confirm latest result</h2>
+          <p class="sub">Browser events cannot prove what the activity displayed. Apply a manual label after returning.</p>
+          <div class="manual">
+            <button data-manual="opened">Opened expected screen</button>
+            <button data-manual="no_visible_result">No visible result</button>
+            <button data-manual="unexpected_screen" class="warn">Unexpected screen</button>
+            <button data-manual="unknown">Unknown</button>
+          </div>
+          <p id="latest-label" class="note">No attempts yet.</p>
+        </section>
+
+        <section class="panel">
+          <h2>How detection works</h2>
+          <p class="sub">Every generated URI includes Chrome's encoded <code>S.browser_fallback_url</code>. If Chrome returns through that URL, the record becomes <em>fallback/no launch</em>. If the page becomes hidden and later visible, it becomes <em>returned after activity or chooser</em>. Neither signal is treated as proof that a Settings operation succeeded.</p>
+          <p class="note"><a href="https://developer.chrome.com/docs/android/intents" rel="noreferrer">Chrome's Android intent documentation ↗</a></p>
+        </section>
+      </div>
+    </div>
+
+    <footer>No automatic spraying, privileged reboot, lock-screen bypass, component targeting, or remote log collection is implemented. Testing remains user-initiated and local to this browser.</footer>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const COMMON_ACTIONS = [
+      "android.settings.SETTINGS",
+      "android.settings.APPLICATION_DEVELOPMENT_SETTINGS",
+      "android.settings.DEVICE_INFO_SETTINGS",
+      "android.settings.USB_SETTINGS",
+      "android.settings.TESTING_SETTINGS",
+      "android.settings.SHOW_REGULATORY_INFO",
+      "android.settings.WIFI_SETTINGS",
+      "android.settings.WIFI_IP_SETTINGS",
+      "android.settings.BLUETOOTH_SETTINGS",
+      "android.settings.WIRELESS_SETTINGS",
+      "android.settings.panel.action.INTERNET_CONNECTIVITY",
+      "android.settings.panel.action.WIFI",
+      "android.settings.NFC_SETTINGS",
+      "android.settings.panel.action.NFC",
+      "android.settings.AIRPLANE_MODE_SETTINGS",
+      "android.settings.NETWORK_OPERATOR_SETTINGS",
+      "android.settings.DATA_ROAMING_SETTINGS",
+      "android.settings.VPN_SETTINGS",
+      "android.settings.CAST_SETTINGS",
+      "android.settings.MANAGE_APPLICATIONS_SETTINGS",
+      "android.settings.MANAGE_DEFAULT_APPS_SETTINGS",
+      "android.settings.MANAGE_UNKNOWN_APP_SOURCES",
+      "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS",
+      "android.settings.USAGE_ACCESS_SETTINGS",
+      "android.settings.action.MANAGE_OVERLAY_PERMISSION",
+      "android.settings.MANAGE_ALL_FILES_ACCESS_PERMISSION",
+      "android.settings.action.MANAGE_WRITE_SETTINGS",
+      "android.settings.NOTIFICATION_POLICY_ACCESS_SETTINGS",
+      "android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS",
+      "android.settings.DISPLAY_SETTINGS",
+      "android.settings.SOUND_SETTINGS",
+      "android.settings.panel.action.VOLUME",
+      "android.settings.NOTIFICATION_SETTINGS",
+      "android.settings.ZEN_MODE_PRIORITY_SETTINGS",
+      "android.settings.AUTO_ROTATE_SETTINGS",
+      "android.settings.HOME_SETTINGS",
+      "android.settings.CAPTIONING_SETTINGS",
+      "android.settings.SECURITY_SETTINGS",
+      "android.settings.PRIVACY_SETTINGS",
+      "android.settings.LOCATION_SOURCE_SETTINGS",
+      "android.settings.BIOMETRIC_ENROLL",
+      "com.android.settings.TRUSTED_CREDENTIALS_USER",
+      "android.settings.DEVICE_ADMIN_SETTINGS",
+      "android.settings.ACCESSIBILITY_SETTINGS",
+      "android.settings.INPUT_METHOD_SETTINGS",
+      "android.settings.HARD_KEYBOARD_SETTINGS",
+      "android.settings.LOCALE_SETTINGS",
+      "android.settings.DATE_SETTINGS",
+      "android.settings.INTERNAL_STORAGE_SETTINGS",
+      "android.settings.MEMORY_CARD_SETTINGS",
+      "android.settings.BATTERY_SAVER_SETTINGS",
+      "android.settings.ACTION_PRINT_SETTINGS",
+      "android.settings.SYNC_SETTINGS"
+    ];
+
+    const KEYS = {
+      run: "android-intent-lab.run.v1",
+      attempts: "android-intent-lab.attempts.v1",
+      pending: "android-intent-lab.pending.v1"
+    };
+    const MAX_ATTEMPTS = 1000;
+    const actionPattern = /^[A-Za-z0-9_$]+(?:\.[A-Za-z0-9_$]+)+$/;
+
+    const corpus = document.querySelector("#corpus");
+    const currentAction = document.querySelector("#current-action");
+    const currentUriBox = document.querySelector("#current-uri");
+    const progress = document.querySelector("#progress");
+    const logBody = document.querySelector("#log-body");
+    const toast = document.querySelector("#toast");
+    let toastTimer;
+
+    function readJson(key, fallback) {
+      try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+      catch { return fallback; }
+    }
+
+    function writeJson(key, value) {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    function uuid() {
+      return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function parseCorpus(value) {
+      return [...new Set(value.split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith("#")))]
+        .filter((action) => actionPattern.test(action));
+    }
+
+    function fallbackUrl(attemptId) {
+      const url = new URL("intent-lab.html", location.href);
+      url.search = "";
+      url.hash = "";
+      url.searchParams.set("fallback", attemptId);
+      return url.toString();
+    }
+
+    function buildIntentUri(action, attemptId = "preview") {
+      return `intent:#Intent;action=${action};S.browser_fallback_url=${encodeURIComponent(fallbackUrl(attemptId))};end`;
+    }
+
+    function getRun() { return readJson(KEYS.run, null); }
+    function getAttempts() { return readJson(KEYS.attempts, []); }
+
+    function saveAttempts(attempts) {
+      writeJson(KEYS.attempts, attempts.slice(-MAX_ATTEMPTS));
+    }
+
+    function updateAttempt(id, updater) {
+      const attempts = getAttempts();
+      const attempt = attempts.find((item) => item.id === id);
+      if (!attempt) return null;
+      updater(attempt);
+      saveAttempts(attempts);
+      return attempt;
+    }
+
+    function addEvent(id, type, details = {}) {
+      return updateAttempt(id, (attempt) => {
+        attempt.events.push({ type, at: new Date().toISOString(), ...details });
+      });
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    async function copyText(value) {
+      try {
+        await navigator.clipboard.writeText(value);
+      } catch {
+        const area = document.createElement("textarea");
+        area.value = value;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+      }
+      showToast("Copied");
+    }
+
+    function launch(action, run) {
+      if (!actionPattern.test(action)) {
+        showToast("Action rejected: use an exact dotted action name");
+        return;
+      }
+
+      const id = uuid();
+      const uri = buildIntentUri(action, id);
+      const attempt = {
+        schemaVersion: 1,
+        id,
+        runId: run.id,
+        corpusIndex: run.index,
+        action,
+        intentUri: uri,
+        startedAt: new Date().toISOString(),
+        status: "pending",
+        awayMs: null,
+        manualOutcome: null,
+        events: [{ type: "launch_requested", at: new Date().toISOString() }]
+      };
+
+      const attempts = getAttempts();
+      attempts.push(attempt);
+      saveAttempts(attempts);
+      writeJson(KEYS.pending, { id, startedMs: Date.now(), hiddenMs: null, blurMs: null });
+
+      run.index += 1;
+      writeJson(KEYS.run, run);
+      render();
+      window.location.href = uri;
+    }
+
+    function markReturned(source) {
+      const pending = readJson(KEYS.pending, null);
+      if (!pending) return;
+      const signalMs = pending.hiddenMs || pending.blurMs;
+      if (!signalMs) return;
+      const awayMs = Math.max(0, Date.now() - signalMs);
+      updateAttempt(pending.id, (attempt) => {
+        if (attempt.status === "pending") attempt.status = "returned_after_activity_or_chooser";
+        attempt.awayMs = awayMs;
+        attempt.events.push({ type: source, at: new Date().toISOString(), awayMs });
+      });
+      localStorage.removeItem(KEYS.pending);
+      render();
+    }
+
+    function processFallback() {
+      const url = new URL(location.href);
+      const id = url.searchParams.get("fallback");
+      if (!id) return;
+      updateAttempt(id, (attempt) => {
+        attempt.status = "browser_fallback_no_launch";
+        attempt.awayMs = Math.max(0, Date.now() - Date.parse(attempt.startedAt));
+        attempt.events.push({ type: "browser_fallback", at: new Date().toISOString() });
+      });
+      const pending = readJson(KEYS.pending, null);
+      if (pending?.id === id) localStorage.removeItem(KEYS.pending);
+      url.searchParams.delete("fallback");
+      history.replaceState({}, "", url.pathname + (url.search ? url.search : "") + url.hash);
+    }
+
+    function statusLabel(value) {
+      const labels = {
+        pending: "pending",
+        browser_fallback_no_launch: "fallback / no launch",
+        returned_after_activity_or_chooser: "returned after activity/chooser"
+      };
+      return labels[value] || value;
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
+    }
+
+    function render() {
+      const run = getRun();
+      const attempts = getAttempts();
+      const action = run?.actions?.[run.index] || "";
+      const finished = run && run.index >= run.actions.length;
+
+      progress.textContent = run ? `${Math.min(run.index + (finished ? 0 : 1), run.actions.length)} of ${run.actions.length}${finished ? " · complete" : ""}` : "No active run";
+      currentAction.textContent = action || (finished ? "Run complete" : "—");
+      currentUriBox.textContent = action ? buildIntentUri(action) : "—";
+      document.querySelector("#test-next").disabled = !action;
+      document.querySelector("#skip").disabled = !action;
+      document.querySelector("#copy-uri").disabled = !action;
+
+      document.querySelector("#stat-total").textContent = run?.actions?.length || 0;
+      document.querySelector("#stat-attempts").textContent = attempts.length;
+      document.querySelector("#stat-fallback").textContent = attempts.filter((item) => item.status === "browser_fallback_no_launch").length;
+      document.querySelector("#stat-returned").textContent = attempts.filter((item) => item.status === "returned_after_activity_or_chooser").length;
+
+      const newest = [...attempts].reverse();
+      logBody.innerHTML = newest.length ? newest.map((attempt) => {
+        const statusClass = attempt.status.startsWith("browser_fallback") ? "fallback" : attempt.status.startsWith("returned") ? "returned" : "";
+        return `<tr>
+          <td>${escapeHtml(new Date(attempt.startedAt).toLocaleTimeString())}</td>
+          <td><code>${escapeHtml(attempt.action)}</code></td>
+          <td><span class="status ${statusClass}">${escapeHtml(statusLabel(attempt.status))}</span></td>
+          <td>${attempt.awayMs == null ? "—" : `${attempt.awayMs} ms`}</td>
+          <td>${escapeHtml(attempt.manualOutcome || "—")}</td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="5">No attempts recorded.</td></tr>`;
+
+      const latest = newest[0];
+      document.querySelector("#latest-label").textContent = latest ? `Latest: ${latest.action} · ${statusLabel(latest.status)}${latest.manualOutcome ? ` · ${latest.manualOutcome}` : ""}` : "No attempts yet.";
+    }
+
+    function download(filename, type, content) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function csvCell(value) {
+      return `"${String(value ?? "").replaceAll('"', '""')}"`;
+    }
+
+    document.querySelector("#load-common").addEventListener("click", () => {
+      corpus.value = COMMON_ACTIONS.join("\n");
+      showToast(`Loaded ${COMMON_ACTIONS.length} actions`);
+    });
+
+    document.querySelector("#normalize").addEventListener("click", () => {
+      const actions = parseCorpus(corpus.value);
+      corpus.value = actions.join("\n");
+      showToast(`${actions.length} valid unique actions`);
+    });
+
+    document.querySelector("#start").addEventListener("click", () => {
+      const actions = parseCorpus(corpus.value);
+      if (!actions.length) {
+        showToast("Add at least one valid dotted action name");
+        return;
+      }
+      const run = { schemaVersion: 1, id: uuid(), createdAt: new Date().toISOString(), index: 0, actions };
+      writeJson(KEYS.run, run);
+      localStorage.removeItem(KEYS.pending);
+      render();
+      showToast(`Started run with ${actions.length} actions`);
+    });
+
+    document.querySelector("#test-next").addEventListener("click", () => {
+      const run = getRun();
+      const action = run?.actions?.[run.index];
+      if (action) launch(action, run);
+    });
+
+    document.querySelector("#skip").addEventListener("click", () => {
+      const run = getRun();
+      if (!run || run.index >= run.actions.length) return;
+      run.index += 1;
+      writeJson(KEYS.run, run);
+      render();
+    });
+
+    document.querySelector("#copy-uri").addEventListener("click", () => {
+      const run = getRun();
+      const action = run?.actions?.[run.index];
+      if (action) copyText(buildIntentUri(action));
+    });
+
+    document.querySelectorAll("[data-manual]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const attempts = getAttempts();
+        const latest = attempts.at(-1);
+        if (!latest) return showToast("No attempt to label");
+        latest.manualOutcome = button.dataset.manual;
+        latest.events.push({ type: "manual_outcome", value: button.dataset.manual, at: new Date().toISOString() });
+        saveAttempts(attempts);
+        render();
+      });
+    });
+
+    document.querySelector("#export-json").addEventListener("click", () => {
+      const payload = {
+        schemaVersion: 1,
+        exportedAt: new Date().toISOString(),
+        origin: location.origin,
+        userAgent: navigator.userAgent,
+        run: getRun(),
+        attempts: getAttempts()
+      };
+      download(`android-intent-log-${Date.now()}.json`, "application/json", JSON.stringify(payload, null, 2));
+    });
+
+    document.querySelector("#export-csv").addEventListener("click", () => {
+      const rows = [["id", "run_id", "corpus_index", "action", "started_at", "status", "away_ms", "manual_outcome", "intent_uri"]];
+      getAttempts().forEach((item) => rows.push([item.id, item.runId, item.corpusIndex, item.action, item.startedAt, item.status, item.awayMs, item.manualOutcome, item.intentUri]));
+      download(`android-intent-log-${Date.now()}.csv`, "text/csv", rows.map((row) => row.map(csvCell).join(",")).join("\n"));
+    });
+
+    document.querySelector("#clear-logs").addEventListener("click", () => {
+      if (!confirm("Delete all locally stored intent-attempt logs?")) return;
+      localStorage.removeItem(KEYS.attempts);
+      localStorage.removeItem(KEYS.pending);
+      render();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      const pending = readJson(KEYS.pending, null);
+      if (!pending) return;
+      if (document.visibilityState === "hidden") {
+        pending.hiddenMs = Date.now();
+        writeJson(KEYS.pending, pending);
+        addEvent(pending.id, "visibility_hidden");
+      } else {
+        markReturned("visibility_visible");
+      }
+    });
+
+    window.addEventListener("blur", () => {
+      const pending = readJson(KEYS.pending, null);
+      if (!pending) return;
+      pending.blurMs = Date.now();
+      writeJson(KEYS.pending, pending);
+      addEvent(pending.id, "window_blur");
+    });
+
+    window.addEventListener("focus", () => markReturned("window_focus"));
+    window.addEventListener("pagehide", () => {
+      const pending = readJson(KEYS.pending, null);
+      if (pending) addEvent(pending.id, "pagehide");
+    });
+    window.addEventListener("pageshow", () => markReturned("pageshow"));
+
+    processFallback();
+    if (!corpus.value) corpus.value = COMMON_ACTIONS.join("\n");
+    render();
+  </script>
+</body>
+</html>
