@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extract exported/BROWSABLE activity filters from preserved Android APK trees."""
+"""Extract activity intent filters from preserved Android APK trees."""
 
 from __future__ import annotations
 
@@ -43,6 +43,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--workers", type=int, default=8)
+    parser.add_argument(
+        "--all-activity-filters",
+        action="store_true",
+        help="include every activity/activity-alias filter instead of BROWSABLE filters only",
+    )
     return parser.parse_args()
 
 
@@ -136,7 +141,14 @@ def sample_uris(data: list[dict[str, str]]) -> list[str]:
     return sorted(set(values))
 
 
-def scan_apk(aapt2: Path, source_label: str, source_root: Path, apk: Path, digest: str) -> dict[str, Any]:
+def scan_apk(
+    aapt2: Path,
+    source_label: str,
+    source_root: Path,
+    apk: Path,
+    digest: str,
+    all_activity_filters: bool,
+) -> dict[str, Any]:
     command = [str(aapt2), "dump", "xmltree", "--file", "AndroidManifest.xml", str(apk)]
     process = subprocess.run(command, capture_output=True, text=True, timeout=45)
     if process.returncode:
@@ -169,7 +181,7 @@ def scan_apk(aapt2: Path, source_label: str, source_root: Path, apk: Path, diges
         for intent_filter in (item for item in component.children if item.tag == "intent-filter"):
             actions = [item.attrs.get("name", "") for item in intent_filter.children if item.tag == "action"]
             categories = [item.attrs.get("name", "") for item in intent_filter.children if item.tag == "category"]
-            if "android.intent.category.BROWSABLE" not in categories:
+            if not all_activity_filters and "android.intent.category.BROWSABLE" not in categories:
                 continue
             data = [dict(item.attrs) for item in intent_filter.children if item.tag == "data"]
             filters.append({
@@ -224,7 +236,15 @@ def main() -> None:
     errors = []
     with ThreadPoolExecutor(max_workers=max(1, args.workers)) as executor:
         futures = [
-            executor.submit(scan_apk, args.aapt2, label, root, apk, digest)
+            executor.submit(
+                scan_apk,
+                args.aapt2,
+                label,
+                root,
+                apk,
+                digest,
+                args.all_activity_filters,
+            )
             for label, root, apk, digest in candidates
         ]
         for future in as_completed(futures):
@@ -261,16 +281,25 @@ def main() -> None:
                         "permission": item["permission"],
                         "evidence": item["evidence"],
                     },
-                    "manifestBrowserCandidate": item["exported"] == "true" and not item["permission"],
+                    "manifestBrowserCandidate": (
+                        "android.intent.category.BROWSABLE" in item["categories"]
+                        and item["exported"] == "true"
+                        and not item["permission"]
+                    ),
                 })
 
     payload = {
         "schemaVersion": 1,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "scanMode": "all_activity_filters" if args.all_activity_filters else "browsable_only",
         "sources": [{"label": label} for label, _path in sources],
         "stats": {
             "uniqueApks": len(candidates),
-            "browsableFilters": len(ordered),
+            "activityFilters": len(ordered),
+            "browsableFilters": sum(
+                "android.intent.category.BROWSABLE" in item["categories"]
+                for item in ordered
+            ),
             "generatedCases": len(cases),
             "errors": len(errors),
         },

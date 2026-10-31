@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d12">
+  <meta name="description" content="Searchable HyperOS activity-intent inventory extracted from preserved Xiaomi firmware APK manifests.">
+  <title>HyperOS Intent Inventory</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080d12;
+      --panel: #111a24;
+      --panel2: #172534;
+      --ink: #edf6ff;
+      --muted: #9cafc3;
+      --line: #293b4e;
+      --blue: #68b9ff;
+      --green: #64daa0;
+      --orange: #ff9b57;
+      --red: #ff7c7c;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% -5%, rgba(56, 145, 255, .22), transparent 32rem),
+        radial-gradient(circle at 100% 4%, rgba(255, 137, 56, .14), transparent 28rem),
+        var(--bg);
+    }
+
+    button, input, select { font: inherit; }
+    a { color: var(--blue); }
+    code { color: #cae5ff; font: .82em/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+    .wrap { width: min(1440px, calc(100% - 24px)); margin: 0 auto; padding: 32px 0 72px; }
+    nav { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 24px; }
+    nav a { color: var(--muted); text-decoration: none; font-size: .84rem; }
+    header { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: end; margin-bottom: 22px; }
+    .kicker { color: var(--green); font-size: .74rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin: 9px 0 10px; font-size: clamp(2.35rem, 7vw, 4.8rem); line-height: .96; letter-spacing: -.06em; }
+    .lead { max-width: 850px; margin: 0; color: var(--muted); line-height: 1.6; }
+    .raw-link { padding: 10px 13px; border: 1px solid #35506a; border-radius: 10px; text-decoration: none; white-space: nowrap; }
+
+    .notice { margin-bottom: 16px; padding: 13px 15px; border: 1px solid #315440; border-radius: 13px; color: #c6f6da; background: rgba(32, 105, 63, .14); font-size: .82rem; line-height: 1.5; }
+    .notice.warn { border-color: #65492f; color: #ffd6b7; background: rgba(117, 66, 25, .16); }
+    .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; margin-bottom: 16px; }
+    .stat { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: rgba(17, 26, 36, .84); }
+    .stat strong { display: block; font-size: 1.5rem; }
+    .stat span { color: var(--muted); font-size: .72rem; }
+
+    .toolbar { position: sticky; top: 8px; z-index: 10; display: grid; grid-template-columns: minmax(260px, 1fr) auto auto; gap: 9px; margin-bottom: 14px; padding: 10px; border: 1px solid var(--line); border-radius: 15px; background: rgba(8, 13, 18, .92); backdrop-filter: blur(16px); }
+    input, select { min-width: 0; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; outline: 0; color: var(--ink); background: var(--panel2); }
+    input:focus, select:focus { border-color: #4675a0; }
+    button { padding: 9px 11px; border: 1px solid #35506a; border-radius: 9px; color: #d9ecff; background: #17283a; cursor: pointer; font-size: .76rem; font-weight: 800; }
+    button:hover { filter: brightness(1.1); }
+    button.primary { color: #071624; border-color: transparent; background: var(--blue); }
+    button.copy { color: #d6e8f8; background: #111c27; }
+    button:disabled { opacity: .42; cursor: not-allowed; }
+
+    .summary { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin: 0 2px 10px; color: var(--muted); font-size: .78rem; }
+    .table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 14px; background: rgba(12, 18, 26, .92); }
+    table { width: 100%; min-width: 1050px; border-collapse: collapse; font-size: .76rem; }
+    th, td { padding: 11px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { position: sticky; top: 0; z-index: 2; color: var(--muted); background: #101923; }
+    tr:last-child td { border-bottom: 0; }
+    td.package { width: 25%; }
+    td.intent { width: 34%; }
+    td.exposure { width: 16%; }
+    td.evidence { width: 14%; }
+    td.controls { width: 11%; }
+    .component { display: block; margin-top: 4px; color: var(--muted); }
+    .uri { display: block; margin-top: 5px; color: #a7c2dc; }
+    .pill { display: inline-block; margin: 0 4px 4px 0; padding: 3px 7px; border: 1px solid #3a5065; border-radius: 999px; color: #bed6ed; white-space: nowrap; }
+    .pill.good { color: #c8f7d9; border-color: #356149; }
+    .pill.warn { color: #ffd2b4; border-color: #624831; }
+    .pill.bad { color: #ffc4c4; border-color: #673d3d; }
+    .controls-inner { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pager { display: flex; justify-content: center; align-items: center; gap: 9px; margin-top: 14px; }
+    .pager span { color: var(--muted); font-size: .78rem; }
+    .loading { padding: 30px; color: var(--muted); text-align: center; }
+    footer { margin-top: 25px; color: var(--muted); font-size: .76rem; line-height: 1.55; text-align: center; }
+    .toast { position: fixed; right: 14px; bottom: 14px; z-index: 30; max-width: min(400px, calc(100% - 28px)); padding: 11px 14px; border: 1px solid #396047; border-radius: 11px; color: #d7ffe8; background: #10271a; opacity: 0; transform: translateY(8px); pointer-events: none; transition: .2s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 900px) {
+      header { grid-template-columns: 1fr; }
+      .raw-link { width: fit-content; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .toolbar { position: static; grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <nav>
+      <a href="index.html">← Android Quick Links</a>
+      <a href="intent-lab.html">Intent Lab</a>
+      <a href="https://github.com/specters312/specters312.github.io/tree/main/data">GitHub data</a>
+    </nav>
+
+    <header>
+      <div>
+        <div class="kicker">Preserved HyperOS firmware manifests</div>
+        <h1>HyperOS Intent Inventory</h1>
+        <p class="lead">Search every activity intent-filter extracted from 419 unique APKs across two preserved Xiaomi firmware sets. Browser launch buttons are offered only for unprotected, exported activities that explicitly declare <code>android.intent.category.BROWSABLE</code>.</p>
+      </div>
+      <a class="raw-link" href="data/xiaomi-activity-intents.json" download>Download raw JSON</a>
+    </header>
+
+    <div id="fallback-notice" class="notice warn" hidden>The previous browser launch returned through Chrome's fallback URL. That means no matching application accepted that intent on this device.</div>
+    <div class="notice">The full inventory includes private, protected, and non-browser activities for research visibility. Those rows are not presented as web-launchable. Manifest-derived entries—including the separate <code>com.miui.*</code> view—are candidates, not runtime-confirmed results. Every launch remains a separate user tap.</div>
+
+    <section class="stats" aria-label="Inventory statistics">
+      <div class="stat"><strong id="stat-apks">—</strong><span>Unique APKs</span></div>
+      <div class="stat"><strong id="stat-packages">—</strong><span>Packages</span></div>
+      <div class="stat"><strong id="stat-filters">—</strong><span>Activity filters</span></div>
+      <div class="stat"><strong id="stat-cases">—</strong><span>Unique cases</span></div>
+      <div class="stat"><strong id="stat-browser">—</strong><span>Browser-launchable</span></div>
+    </section>
+
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Search package, component, action, URI, APK…" autocomplete="off" aria-label="Search HyperOS intents">
+      <select id="exposure" aria-label="Filter by exposure">
+        <option value="all">All manifest entries</option>
+        <option value="browser">Browser-launchable only</option>
+        <option value="exported">All exported activities</option>
+        <option value="protected">Protected/private only</option>
+      </select>
+      <select id="family" aria-label="Filter by package family">
+        <option value="all">All firmware packages</option>
+        <option value="miui">Generated com.miui.* candidates</option>
+        <option value="xiaomi">Xiaomi / MIUI packages</option>
+        <option value="android">Android platform packages</option>
+        <option value="vendor">MediaTek / Qualcomm packages</option>
+      </select>
+    </div>
+
+    <div class="summary">
+      <span id="result-count">Loading inventory…</span>
+      <span>100 rows per page · raw evidence retained in JSON</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Package / component</th><th>Action / data URI</th><th>Exposure</th><th>Firmware evidence</th><th>Test</th></tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="5" class="loading">Loading <code>data/xiaomi-activity-intents.json</code>…</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="pager">
+      <button id="previous">Previous</button>
+      <span id="page-label">Page —</span>
+      <button id="next">Next</button>
+    </div>
+
+    <footer>Manifest declarations are evidence of an entry point, not proof that a particular build will accept or complete an invocation. Package presence, permissions, user state, OEM policy, and runtime checks still apply.</footer>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const DATA_URL = "data/xiaomi-activity-intents.json";
+    const PAGE_SIZE = 100;
+    const FORBIDDEN_SCHEMES = new Set(["about", "blob", "content", "data", "file", "intent", "javascript"]);
+    let inventory = null;
+    let allCases = [];
+    let filteredCases = [];
+    let page = 0;
+    let toastTimer = null;
+
+    const rows = document.querySelector("#rows");
+    const search = document.querySelector("#search");
+    const exposure = document.querySelector("#exposure");
+    const family = document.querySelector("#family");
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value).replace(/[&<>'"]/g, function (character) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character];
+      });
+    }
+
+    function showToast(message) {
+      const toast = document.querySelector("#toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2400);
+    }
+
+    async function copyText(value) {
+      try {
+        await navigator.clipboard.writeText(value);
+      } catch (_error) {
+        const area = document.createElement("textarea");
+        area.value = value;
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+      }
+      showToast("Copied ADB command");
+    }
+
+    function shellQuote(value) {
+      return "'" + String(value).replaceAll("'", "'\\''") + "'";
+    }
+
+    function fullComponent(item) {
+      const packageName = item.source.package;
+      const component = item.source.component;
+      if (component.startsWith(".")) return packageName + component;
+      return component;
+    }
+
+    function adbCommand(item) {
+      const pieces = ["adb shell am start -W"];
+      if (item.action) pieces.push("-a " + shellQuote(item.action));
+      if (item.uri) pieces.push("-d " + shellQuote(item.uri));
+      pieces.push("-n " + shellQuote(item.source.package + "/" + fullComponent(item)));
+      return pieces.join(" ");
+    }
+
+    function browserIntent(item) {
+      if (!item.manifestBrowserCandidate || !item.uri) return null;
+      if (!/^[A-Za-z0-9_.$]+$/.test(item.action)) return null;
+      if (!/^[A-Za-z0-9_.$]+$/.test(item.source.package)) return null;
+      const match = item.uri.match(/^([A-Za-z][A-Za-z0-9+.-]*):(.*)$/s);
+      if (!match) return null;
+      const scheme = match[1].toLowerCase();
+      const tail = match[2];
+      if (FORBIDDEN_SCHEMES.has(scheme) || /[;#\r\n]/.test(tail) || tail.includes("#Intent")) return null;
+      const fallback = new URL("hyperos-intents.html", location.href);
+      fallback.searchParams.set("fallback", item.id);
+      return "intent:" + tail +
+        "#Intent;scheme=" + scheme +
+        ";action=" + item.action +
+        ";category=android.intent.category.BROWSABLE" +
+        ";package=" + item.source.package +
+        ";S.browser_fallback_url=" + encodeURIComponent(fallback.href) +
+        ";end";
+    }
+
+    function packageFamily(packageName) {
+      if (/^(com\.(mi|miui|xiaomi)|miui\.)/.test(packageName)) return "xiaomi";
+      if (/^(android\.|com\.android\.)/.test(packageName)) return "android";
+      if (/^(com\.(mediatek|qualcomm)|org\.codeaurora\.)/.test(packageName)) return "vendor";
+      return "other";
+    }
+
+    function mergeCases(cases) {
+      const merged = new Map();
+      cases.forEach(function (item) {
+        if (!merged.has(item.id)) {
+          merged.set(item.id, structuredClone(item));
+          return;
+        }
+        const target = merged.get(item.id);
+        const seen = new Set(target.source.evidence.map(function (entry) { return entry.source + "|" + entry.apk + "|" + entry.sha256; }));
+        item.source.evidence.forEach(function (entry) {
+          const key = entry.source + "|" + entry.apk + "|" + entry.sha256;
+          if (!seen.has(key)) target.source.evidence.push(entry);
+        });
+      });
+      return Array.from(merged.values());
+    }
+
+    function exposureLabel(item) {
+      if (item.manifestBrowserCandidate) return '<span class="pill good">exported + BROWSABLE</span><span class="pill good">no component permission</span>';
+      const values = [];
+      values.push('<span class="pill ' + (item.source.exported === "true" ? "warn" : "bad") + '">exported: ' + escapeHtml(item.source.exported) + '</span>');
+      if (item.source.permission) values.push('<span class="pill bad">' + escapeHtml(item.source.permission) + '</span>');
+      else values.push('<span class="pill">not browser-reachable</span>');
+      return values.join("");
+    }
+
+    function evidenceHtml(item) {
+      const sources = Array.from(new Set(item.source.evidence.map(function (entry) { return entry.source; })));
+      const apks = Array.from(new Set(item.source.evidence.map(function (entry) { return entry.apk; })));
+      return sources.map(function (source) { return '<span class="pill">' + escapeHtml(source) + '</span>'; }).join("") +
+        '<span class="component">' + escapeHtml(apks[0] || "") + (apks.length > 1 ? " +" + (apks.length - 1) : "") + '</span>';
+    }
+
+    function searchableText(item) {
+      return [item.source.package, item.source.component, item.action, item.uri, item.source.permission]
+        .concat(item.source.evidence.flatMap(function (entry) { return [entry.source, entry.apk, entry.sha256]; }))
+        .join(" ").toLowerCase();
+    }
+
+    function applyFilters() {
+      const query = search.value.trim().toLowerCase();
+      const exposureValue = exposure.value;
+      const familyValue = family.value;
+      filteredCases = allCases.filter(function (item) {
+        if (query && !item._search.includes(query)) return false;
+        if (familyValue === "miui" && !item.source.package.startsWith("com.miui.")) return false;
+        if (familyValue !== "all" && familyValue !== "miui" && packageFamily(item.source.package) !== familyValue) return false;
+        if (exposureValue === "browser" && !item.manifestBrowserCandidate) return false;
+        if (exposureValue === "exported" && item.source.exported !== "true") return false;
+        if (exposureValue === "protected" && item.source.exported === "true" && !item.source.permission) return false;
+        return true;
+      });
+      page = 0;
+      render();
+    }
+
+    function render() {
+      const pages = Math.max(1, Math.ceil(filteredCases.length / PAGE_SIZE));
+      page = Math.min(page, pages - 1);
+      const start = page * PAGE_SIZE;
+      const visible = filteredCases.slice(start, start + PAGE_SIZE);
+      document.querySelector("#result-count").textContent = filteredCases.length.toLocaleString() + " matching unique intent cases";
+      document.querySelector("#page-label").textContent = "Page " + (page + 1) + " of " + pages;
+      document.querySelector("#previous").disabled = page === 0;
+      document.querySelector("#next").disabled = page >= pages - 1;
+
+      if (!visible.length) {
+        rows.innerHTML = '<tr><td colspan="5" class="loading">No manifest entries match these filters.</td></tr>';
+        return;
+      }
+
+      rows.innerHTML = visible.map(function (item, localIndex) {
+        const absoluteIndex = start + localIndex;
+        const launchUri = browserIntent(item);
+        return "<tr>" +
+          '<td class="package"><code>' + escapeHtml(item.source.package) + '</code><span class="component">' + escapeHtml(fullComponent(item)) + "</span></td>" +
+          '<td class="intent"><code>' + escapeHtml(item.action || "(no action)") + '</code><span class="uri">' + escapeHtml(item.uri || "No manifest data URI") + "</span></td>" +
+          '<td class="exposure">' + exposureLabel(item) + "</td>" +
+          '<td class="evidence">' + evidenceHtml(item) + "</td>" +
+          '<td class="controls"><div class="controls-inner">' +
+            (launchUri ? '<button class="primary" data-launch="' + absoluteIndex + '">Launch</button>' : '<button disabled>Not web-launchable</button>') +
+            '<button class="copy" data-copy="' + absoluteIndex + '">Copy ADB</button>' +
+          "</div></td></tr>";
+      }).join("");
+    }
+
+    rows.addEventListener("click", function (event) {
+      const launchButton = event.target.closest("[data-launch]");
+      if (launchButton) {
+        const item = filteredCases[Number(launchButton.dataset.launch)];
+        const uri = item && browserIntent(item);
+        if (!uri) return showToast("This entry is not safe to launch from a webpage");
+        window.location.href = uri;
+        return;
+      }
+      const copyButton = event.target.closest("[data-copy]");
+      if (copyButton) {
+        const item = filteredCases[Number(copyButton.dataset.copy)];
+        if (item) copyText(adbCommand(item));
+      }
+    });
+
+    search.addEventListener("input", applyFilters);
+    exposure.addEventListener("change", applyFilters);
+    family.addEventListener("change", applyFilters);
+    document.querySelector("#previous").addEventListener("click", function () { if (page > 0) { page -= 1; render(); scrollTo({ top: 0, behavior: "smooth" }); } });
+    document.querySelector("#next").addEventListener("click", function () { if ((page + 1) * PAGE_SIZE < filteredCases.length) { page += 1; render(); scrollTo({ top: 0, behavior: "smooth" }); } });
+
+    const params = new URL(location.href).searchParams;
+    if (params.get("family") === "miui") {
+      family.value = "miui";
+      document.title = "Generated com.miui Intent Candidates";
+      document.querySelector("h1").textContent = "Generated com.miui Intent Candidates";
+      document.querySelector(".kicker").textContent = "Manifest-derived · not runtime-confirmed";
+    }
+    if (params.has("fallback")) document.querySelector("#fallback-notice").hidden = false;
+
+    fetch(DATA_URL, { cache: "no-cache" })
+      .then(function (response) {
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        return response.json();
+      })
+      .then(function (data) {
+        inventory = data;
+        allCases = mergeCases(data.cases).map(function (item) {
+          item._search = searchableText(item);
+          return item;
+        });
+        filteredCases = allCases;
+        const packages = new Set(allCases.map(function (item) { return item.source.package; }));
+        const browserCases = allCases.filter(function (item) { return item.manifestBrowserCandidate && browserIntent(item); });
+        document.querySelector("#stat-apks").textContent = data.stats.uniqueApks.toLocaleString();
+        document.querySelector("#stat-packages").textContent = packages.size.toLocaleString();
+        document.querySelector("#stat-filters").textContent = data.stats.activityFilters.toLocaleString();
+        document.querySelector("#stat-cases").textContent = allCases.length.toLocaleString();
+        document.querySelector("#stat-browser").textContent = browserCases.length.toLocaleString();
+        applyFilters();
+      })
+      .catch(function (error) {
+        rows.innerHTML = '<tr><td colspan="5" class="loading">Unable to load inventory: ' + escapeHtml(error.message) + "</td></tr>";
+        document.querySelector("#result-count").textContent = "Inventory load failed";
+      });
+  </script>
+</body>
+</html>
