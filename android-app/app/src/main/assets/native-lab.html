@@ -92,8 +92,10 @@
       <h2>Automated launch mode</h2>
       <p class="sub">An ordinary app cannot reliably keep launching after it backgrounds itself. The bundled instrumentation runner uses Android's test automation channel to execute each action, capture <code>am start -W</code> and focused-window output, press Back, and continue automatically.</p>
       <pre id="instrumentation-command">adb shell am instrument -w -r -e launch true -e delayMs 750 io.github.specters312.intentlab/.IntentFuzzInstrumentation</pre>
-      <div class="buttons"><button id="copy-command">Copy command</button></div>
-      <p class="note">Resolution-only instrumentation is the same command without <code>-e launch true</code>. Launch mode covers the generic action corpus. Device-derived deep links are enumerated automatically but are not batch-launched.</p>
+      <div class="buttons"><button id="copy-command">Copy generic command</button></div>
+      <pre id="instrumentation-all-command">adb shell am instrument -w -r -e launch true -e corpus all -e delayMs 750 io.github.specters312.intentlab/.IntentFuzzInstrumentation</pre>
+      <div class="buttons"><button id="copy-all-command">Copy full-corpus command</button></div>
+      <p class="note">Resolution-only instrumentation is the same command without <code>-e launch true</code>. The explicit <code>corpus all</code> mode includes manifest-confirmed device deep links and can open account, market, payment, or other stateful routes.</p>
     </section>
 
     <section class="panel wide">
@@ -227,6 +229,10 @@
   });
   document.querySelector("#copy-command").addEventListener("click", async () => {
     const value = document.querySelector("#instrumentation-command").textContent.trim();
+    await navigator.clipboard.writeText(value);
+  });
+  document.querySelector("#copy-all-command").addEventListener("click", async () => {
+    const value = document.querySelector("#instrumentation-all-command").textContent.trim();
     await navigator.clipboard.writeText(value);
   });
   function runShell(command) {

@@ -115,6 +115,35 @@
 
     .how strong { color: var(--ink); }
 
+    .lab-banner {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      margin: 0 0 18px;
+      padding: 18px;
+      border: 1px solid rgba(97, 214, 156, .42);
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(22, 59, 43, .88), rgba(13, 27, 26, .92));
+    }
+
+    .lab-banner h2 { margin: 0 0 5px; }
+    .lab-banner p { margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.5; }
+    .lab-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    .lab-actions a {
+      padding: 10px 13px;
+      border: 1px solid #3f6551;
+      border-radius: 10px;
+      color: #d9ffea;
+      background: #173528;
+      text-decoration: none;
+      font-size: .8rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .lab-actions a.primary { color: #071a12; border-color: transparent; background: var(--green); }
+
     .toolbar {
       position: sticky;
       top: 8px;
@@ -311,6 +340,8 @@
       header { grid-template-columns: 1fr; align-items: start; }
       .stamp { width: fit-content; }
       .how, .cards { grid-template-columns: 1fr; }
+      .lab-banner { grid-template-columns: 1fr; }
+      .lab-actions { justify-content: flex-start; }
       .toolbar { grid-template-columns: 1fr; position: static; }
       .toolbar a { padding: 10px; }
       .custom { grid-template-columns: 1fr 1fr; }
@@ -334,6 +365,17 @@
       <div><strong>2.</strong> Tap <em>Open</em>; Chrome can launch only an activity that declares the <code>BROWSABLE</code> category.</div>
       <div><strong>3.</strong> If an OEM removed that activity, copy the ADB fallback instead.</div>
     </div>
+
+    <section class="lab-banner">
+      <div>
+        <h2>Automatic intent enumeration</h2>
+        <p>Open the JavaScript Intent Lab, export browser-attempt logs, or download the native companion for automatic host, WebView, package, and preserved-firmware intent enumeration.</p>
+      </div>
+      <div class="lab-actions">
+        <a class="primary" href="intent-lab.html">Open Intent Lab</a>
+        <a href="downloads/android-intent-lab-v1.0-debug.apk" download>Download APK</a>
+      </div>
+    </section>
 
     <div class="toolbar">
       <input id="search" type="search" placeholder="Filter: developer, Wi-Fi, USB, accessibility…" autocomplete="off" aria-label="Filter settings links">

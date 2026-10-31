@@ -44,7 +44,17 @@ adb shell am instrument -w -r \
   io.github.specters312.intentlab/.IntentFuzzInstrumentation
 ```
 
-Android restricts ordinary background activity launches, so the unattended launch loop is instrumentation-only. Device-derived deep links are automatically enumerated but are not batch-launched.
+Launch the generic actions plus every exported, non-permission-gated device-derived deep-link case:
+
+```sh
+adb shell am instrument -w -r \
+  -e launch true \
+  -e corpus all \
+  -e delayMs 750 \
+  io.github.specters312.intentlab/.IntentFuzzInstrumentation
+```
+
+Android restricts ordinary background activity launches, so the unattended launch loop is instrumentation-only. `corpus` accepts `generic` (default), `device`, or `all`. Full-corpus launch mode can open account, market, payment, and other potentially stateful routes; it therefore requires the explicit `-e launch true -e corpus all` combination.
 
 ## Regenerate the preserved-firmware corpus
 

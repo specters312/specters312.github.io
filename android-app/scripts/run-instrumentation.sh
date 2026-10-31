@@ -4,6 +4,7 @@ set -eu
 ADB_BIN=${ADB_BIN:-adb}
 DEVICE_SERIAL=${DEVICE_SERIAL:-}
 DELAY_MS=${DELAY_MS:-750}
+CORPUS=${CORPUS:-generic}
 
 if [ -n "$DEVICE_SERIAL" ]; then
   set -- -s "$DEVICE_SERIAL"
@@ -13,5 +14,6 @@ fi
 
 exec "$ADB_BIN" "$@" shell am instrument -w -r \
   -e launch true \
+  -e corpus "$CORPUS" \
   -e delayMs "$DELAY_MS" \
   io.github.specters312.intentlab/.IntentFuzzInstrumentation
