@@ -8,6 +8,8 @@ Static GitHub Pages source with one-tap Android Settings intent links and copyab
 
 **Native companion APK:** [https://specters312.github.io/downloads/android-intent-lab-v1.1-debug.apk](https://specters312.github.io/downloads/android-intent-lab-v1.1-debug.apk)
 
+**Extensionless APK handler test:** [https://specters312.github.io/downloads/test](https://specters312.github.io/downloads/test) — byte-identical APK content, intentionally named `test` with no extension.
+
 **Safe HyperOS handler probes:** [https://specters312.github.io/downloads/hyperos-handler-probe-pack.zip](https://specters312.github.io/downloads/hyperos-handler-probe-pack.zip)
 
 The page does not include firmware, device data, credentials, exploit material, or third-party binaries. A standard webpage cannot reboot a correctly secured device; boot-mode shortcuts are provided as copyable ADB commands instead.
