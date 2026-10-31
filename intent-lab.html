@@ -112,6 +112,8 @@
     .status.returned { color: #c8f7d9; border-color: #356149; }
 
     .note { margin-top: 15px; color: var(--muted); font-size: .76rem; line-height: 1.5; }
+    .native-card { margin-bottom: 20px; border-color: rgba(100, 218, 160, .38); background: linear-gradient(145deg, rgba(20, 52, 39, .88), rgba(13, 25, 24, .94)); }
+    .download { display:inline-block; padding:10px 13px; border-radius:10px; color:#071b13; background:var(--green); text-decoration:none; font-size:.8rem; font-weight:900; }
     footer { margin-top: 28px; color: var(--muted); font-size: .75rem; line-height: 1.55; text-align: center; }
 
     .toast { position: fixed; right: 14px; bottom: 14px; z-index: 20; max-width: min(380px, calc(100% - 28px)); padding: 11px 14px; border: 1px solid #396047; border-radius: 11px; color: #d7ffe8; background: #10271a; opacity: 0; transform: translateY(8px); pointer-events: none; transition: .2s ease; }
@@ -148,6 +150,16 @@
       <div><strong>BROWSABLE only.</strong> A browser can invoke only matching activities that declare <code>android.intent.category.BROWSABLE</code>.</div>
       <div><strong>Evidence, not certainty.</strong> Fallback is explicit; visibility and focus signals only suggest an activity or chooser opened.</div>
     </div>
+
+    <section class="panel native-card">
+      <h2>Need automatic enumeration?</h2>
+      <p class="sub">The native companion automatically resolves the complete corpus, inventories its host package and WebView provider, enumerates installed packages, and saves a local JSON report. It includes 475 action/URI cases generated from 229 BROWSABLE filters across 419 unique APKs preserved from the two prior firmware sets.</p>
+      <div class="buttons">
+        <a class="download" href="downloads/android-intent-lab-v1.0-debug.apk" download>Download Android Intent Lab APK</a>
+        <a class="download" href="https://github.com/specters312/specters312.github.io/tree/main/android-app">View source</a>
+      </div>
+      <p class="note"><code>adb install -r android-intent-lab-v1.0-debug.apk</code><br>SHA-256: <code>08f4704836242cdd7a533a7e19a39c3602f8fd1756511cf9d572d8ec759ad0a3</code></p>
+    </section>
 
     <div class="layout">
       <div class="stack">

@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d12">
+  <title>Android Intent Lab Native</title>
+  <style>
+    :root { color-scheme: dark; --bg:#080d12; --panel:#111a24; --panel2:#172534; --ink:#edf6ff; --muted:#9cafc3; --line:#293b4e; --blue:#68b9ff; --green:#64daa0; --orange:#ff9b57; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,sans-serif; color:var(--ink); background:radial-gradient(circle at 8% -5%,rgba(56,145,255,.22),transparent 30rem),var(--bg); }
+    main { width:min(1100px,calc(100% - 20px)); margin:auto; padding:28px 0 60px; }
+    .kicker { color:var(--green); font-size:.72rem; font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:8px 0; font-size:clamp(2.2rem,8vw,4.6rem); line-height:.95; letter-spacing:-.055em; }
+    .lead { max-width:760px; margin:0 0 20px; color:var(--muted); line-height:1.55; }
+    .status { display:flex; align-items:center; gap:8px; margin:14px 0 18px; padding:12px 14px; border:1px solid var(--line); border-radius:13px; background:var(--panel); color:var(--muted); }
+    .dot { width:9px; height:9px; border-radius:50%; background:var(--orange); box-shadow:0 0 14px var(--orange); }
+    .dot.done { background:var(--green); box-shadow:0 0 14px var(--green); }
+    .stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin-bottom:16px; }
+    .stat { padding:12px; border:1px solid var(--line); border-radius:12px; background:var(--panel); }
+    .stat strong { display:block; font-size:1.35rem; }
+    .stat span { color:var(--muted); font-size:.68rem; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .panel { min-width:0; padding:17px; border:1px solid var(--line); border-radius:16px; background:linear-gradient(145deg,rgba(21,34,48,.95),rgba(13,20,28,.96)); }
+    .wide { grid-column:1/-1; }
+    h2 { margin:0 0 5px; font-size:1.02rem; }
+    .sub { margin:0 0 12px; color:var(--muted); font-size:.78rem; line-height:1.48; }
+    pre { max-height:280px; overflow:auto; margin:0; padding:12px; border:1px solid var(--line); border-radius:11px; background:#070c11; color:#cce5ff; font:.7rem/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .buttons { display:flex; flex-wrap:wrap; gap:8px; margin-top:11px; }
+    button { padding:9px 12px; border:1px solid #35506a; border-radius:10px; color:#d9ecff; background:#17283a; font-weight:800; }
+    button.primary { color:#061523; border-color:transparent; background:var(--blue); }
+    input { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; color:var(--ink); background:#090f15; outline:0; }
+    .table-wrap { max-height:55vh; overflow:auto; border:1px solid var(--line); border-radius:12px; }
+    table { width:100%; border-collapse:collapse; font-size:.72rem; }
+    th,td { padding:9px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { position:sticky; top:0; z-index:2; color:var(--muted); background:#101923; }
+    tr:last-child td { border-bottom:0; }
+    code { color:#cce5ff; font:inherit; overflow-wrap:anywhere; }
+    .pill { display:inline-block; padding:3px 6px; border:1px solid #36536c; border-radius:999px; white-space:nowrap; }
+    .pill.hit { color:#c9f8dc; border-color:#37674b; }
+    .note { margin-top:12px; color:var(--muted); font-size:.74rem; line-height:1.5; }
+    .shell-row { display:grid; grid-template-columns:1fr auto; gap:8px; }
+    @media(max-width:800px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:1fr}.wide{grid-column:auto}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="kicker">Native PackageManager mode</div>
+  <h1>Android Intent Lab</h1>
+  <p class="lead">This APK runs the complete resolution corpus automatically, inventories the host/WebView and installed packages, compares ordinary app handlers with browser-category handlers, saves a local JSON report, and never sends results over the network.</p>
+
+  <div class="status"><span id="dot" class="dot"></span><span id="status-text">Starting native enumeration…</span></div>
+
+  <div class="stats">
+    <div class="stat"><strong id="stat-cases">0</strong><span>Total cases</span></div>
+    <div class="stat"><strong id="stat-derived">0</strong><span>Device-derived</span></div>
+    <div class="stat"><strong id="stat-browser">0</strong><span>Browser matches</span></div>
+    <div class="stat"><strong id="stat-native">0</strong><span>Native matches</span></div>
+    <div class="stat"><strong id="stat-packages">0</strong><span>Installed packages</span></div>
+  </div>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>Host + WebView</h2>
+      <p class="sub">The application containing the JavaScript bridge and the system WebView implementation.</p>
+      <pre id="environment">Waiting…</pre>
+    </section>
+
+    <section class="panel">
+      <h2>Saved report</h2>
+      <p class="sub">App-specific external storage; readable with ADB and removable with the app.</p>
+      <pre id="save-result">Waiting…</pre>
+      <div class="buttons">
+        <button id="rerun" class="primary">Run full enumeration again</button>
+        <button id="save">Save another report</button>
+      </div>
+    </section>
+
+    <section class="panel wide">
+      <h2>Resolved corpus</h2>
+      <p class="sub">Includes generic Android actions and 475 cases generated from 229 BROWSABLE filters across 419 unique APKs preserved from the Qualcomm v816.0.9 and Mophie firmware sets.</p>
+      <input id="filter" type="search" placeholder="Filter package, action, URI, component, or handler…">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Case</th><th>Action / URI</th><th>Browser</th><th>Native</th><th>Manifest source</th></tr></thead>
+          <tbody id="results"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel wide">
+      <h2>Automated launch mode</h2>
+      <p class="sub">An ordinary app cannot reliably keep launching after it backgrounds itself. The bundled instrumentation runner uses Android's test automation channel to execute each action, capture <code>am start -W</code> and focused-window output, press Back, and continue automatically.</p>
+      <pre id="instrumentation-command">adb shell am instrument -w -r -e launch true -e delayMs 750 io.github.specters312.intentlab/.IntentFuzzInstrumentation</pre>
+      <div class="buttons"><button id="copy-command">Copy command</button></div>
+      <p class="note">Resolution-only instrumentation is the same command without <code>-e launch true</code>. Launch mode covers the generic action corpus. Device-derived deep links are enumerated automatically but are not batch-launched.</p>
+    </section>
+
+    <section class="panel wide">
+      <h2>Local app-UID shell</h2>
+      <p class="sub">Runs one command line through <code>/system/bin/sh</code> as this APK's sandboxed UID. Output is capped at 1 MiB and execution at 15 seconds. The APK requests no network permission and exposes no listener or background command service.</p>
+      <div class="shell-row">
+        <input id="shell-command" value="id" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button id="shell-run" class="primary">Run</button>
+      </div>
+      <div class="buttons">
+        <button data-shell="id">id</button>
+        <button data-shell="getprop ro.build.fingerprint">build fingerprint</button>
+        <button data-shell="pm list packages -3">third-party packages</button>
+        <button data-shell="cmd package resolve-activity --brief -a android.settings.SETTINGS">resolve Settings</button>
+      </div>
+      <pre id="shell-output">No command run yet.</pre>
+      <p class="note">This is not an ADB or root shell. It gains root only if a separately installed and configured <code>su</code> implementation explicitly grants this app permission.</p>
+    </section>
+  </div>
+</main>
+
+<script>
+  const GENERIC_ACTIONS = [
+    "android.settings.SETTINGS","android.settings.APPLICATION_DEVELOPMENT_SETTINGS","android.settings.DEVICE_INFO_SETTINGS","android.settings.USB_SETTINGS","android.settings.TESTING_SETTINGS","android.settings.SHOW_REGULATORY_INFO","android.settings.WIFI_SETTINGS","android.settings.WIFI_IP_SETTINGS","android.settings.BLUETOOTH_SETTINGS","android.settings.WIRELESS_SETTINGS","android.settings.panel.action.INTERNET_CONNECTIVITY","android.settings.panel.action.WIFI","android.settings.NFC_SETTINGS","android.settings.panel.action.NFC","android.settings.AIRPLANE_MODE_SETTINGS","android.settings.NETWORK_OPERATOR_SETTINGS","android.settings.DATA_ROAMING_SETTINGS","android.settings.VPN_SETTINGS","android.settings.CAST_SETTINGS","android.settings.MANAGE_APPLICATIONS_SETTINGS","android.settings.MANAGE_DEFAULT_APPS_SETTINGS","android.settings.MANAGE_UNKNOWN_APP_SOURCES","android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS","android.settings.USAGE_ACCESS_SETTINGS","android.settings.action.MANAGE_OVERLAY_PERMISSION","android.settings.MANAGE_ALL_FILES_ACCESS_PERMISSION","android.settings.action.MANAGE_WRITE_SETTINGS","android.settings.NOTIFICATION_POLICY_ACCESS_SETTINGS","android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS","android.settings.DISPLAY_SETTINGS","android.settings.SOUND_SETTINGS","android.settings.panel.action.VOLUME","android.settings.NOTIFICATION_SETTINGS","android.settings.ZEN_MODE_PRIORITY_SETTINGS","android.settings.AUTO_ROTATE_SETTINGS","android.settings.HOME_SETTINGS","android.settings.CAPTIONING_SETTINGS","android.settings.SECURITY_SETTINGS","android.settings.PRIVACY_SETTINGS","android.settings.LOCATION_SOURCE_SETTINGS","android.settings.BIOMETRIC_ENROLL","com.android.settings.TRUSTED_CREDENTIALS_USER","android.settings.DEVICE_ADMIN_SETTINGS","android.settings.ACCESSIBILITY_SETTINGS","android.settings.INPUT_METHOD_SETTINGS","android.settings.HARD_KEYBOARD_SETTINGS","android.settings.LOCALE_SETTINGS","android.settings.DATE_SETTINGS","android.settings.INTERNAL_STORAGE_SETTINGS","android.settings.MEMORY_CARD_SETTINGS","android.settings.BATTERY_SAVER_SETTINGS","android.settings.ACTION_PRINT_SETTINGS","android.settings.SYNC_SETTINGS"
+  ];
+
+  let report = null;
+  let renderedRows = [];
+
+  function parseNative(value) {
+    try { return JSON.parse(value); }
+    catch (error) { return { error: "invalid_native_json", message: String(error), raw: value }; }
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char]));
+  }
+
+  function handlerNames(values) {
+    return (values || []).map(item => `${item.package}/${item.activity}`).join("\n");
+  }
+
+  function renderResults() {
+    const filter = document.querySelector("#filter").value.trim().toLowerCase();
+    const body = document.querySelector("#results");
+    const selected = renderedRows.filter(item => item.search.includes(filter));
+    body.innerHTML = selected.length ? selected.map(item => `
+      <tr>
+        <td>${escapeHtml(item.label)}<br><small>${escapeHtml(item.id)}</small></td>
+        <td><code>${escapeHtml(item.action)}</code>${item.uri ? `<br><code>${escapeHtml(item.uri)}</code>` : ""}</td>
+        <td><span class="pill ${item.browserCount ? "hit" : ""}">${item.browserCount}</span><br><small>${escapeHtml(item.browserNames)}</small></td>
+        <td><span class="pill ${item.nativeCount ? "hit" : ""}">${item.nativeCount}</span><br><small>${escapeHtml(item.nativeNames)}</small></td>
+        <td><small>${escapeHtml(item.sourceText)}</small></td>
+      </tr>`).join("") : `<tr><td colspan="5">No matching results.</td></tr>`;
+  }
+
+  async function run() {
+    if (!window.IntentLabNative) {
+      document.querySelector("#status-text").textContent = "Native bridge unavailable; install and open the APK.";
+      return;
+    }
+    document.querySelector("#dot").classList.remove("done");
+    document.querySelector("#status-text").textContent = "Inventorying host, WebView, packages, and intent handlers…";
+
+    const environment = parseNative(IntentLabNative.getEnvironment());
+    const host = parseNative(IntentLabNative.enumerateHost());
+    const installed = parseNative(IntentLabNative.enumerateInstalledPackages());
+    const deviceScan = parseNative(IntentLabNative.getDeviceCorpus());
+    const genericCases = GENERIC_ACTIONS.map((action, index) => ({
+      id: `generic-${index}`,
+      label: action,
+      action,
+      uri: "",
+      source: { type: "generic_android_action" }
+    }));
+    const allCases = [...genericCases, ...deviceScan.cases];
+    const resolution = parseNative(IntentLabNative.resolveCases(JSON.stringify(allCases)));
+
+    report = {
+      schemaVersion: 1,
+      createdAt: new Date().toISOString(),
+      environment,
+      host,
+      installed,
+      preservedFirmwareScan: deviceScan,
+      resolution
+    };
+    const saveResult = parseNative(IntentLabNative.saveReport(JSON.stringify(report)));
+
+    document.querySelector("#environment").textContent = JSON.stringify({environment, host}, null, 2);
+    document.querySelector("#save-result").textContent = JSON.stringify(saveResult, null, 2);
+    document.querySelector("#stat-cases").textContent = allCases.length;
+    document.querySelector("#stat-derived").textContent = deviceScan.cases.length;
+    document.querySelector("#stat-packages").textContent = installed.count || 0;
+
+    const inputsById = new Map(allCases.map(item => [item.id, item]));
+    const rows = resolution.results || [];
+    document.querySelector("#stat-browser").textContent = rows.filter(item => item.browserHandlers?.length).length;
+    document.querySelector("#stat-native").textContent = rows.filter(item => item.nativeHandlers?.length).length;
+    renderedRows = rows.map(item => {
+      const input = inputsById.get(item.id) || {};
+      const evidence = input.source?.evidence || [];
+      const sourceText = input.source?.package
+        ? `${input.source.package} · ${input.source.component || ""} · ${evidence.map(x => x.source).join(", ")}`
+        : "generic Android action";
+      const browserNames = handlerNames(item.browserHandlers);
+      const nativeNames = handlerNames(item.nativeHandlers);
+      return {
+        id: item.id,
+        label: item.label || input.label || item.action,
+        action: item.action,
+        uri: item.uri,
+        browserCount: item.browserHandlers?.length || 0,
+        nativeCount: item.nativeHandlers?.length || 0,
+        browserNames,
+        nativeNames,
+        sourceText,
+        search: `${item.id} ${item.label} ${item.action} ${item.uri} ${browserNames} ${nativeNames} ${sourceText}`.toLowerCase()
+      };
+    });
+    renderResults();
+    document.querySelector("#dot").classList.add("done");
+    document.querySelector("#status-text").textContent = `Complete: ${allCases.length} cases resolved and report saved locally.`;
+  }
+
+  document.querySelector("#filter").addEventListener("input", renderResults);
+  document.querySelector("#rerun").addEventListener("click", run);
+  document.querySelector("#save").addEventListener("click", () => {
+    if (!report) return;
+    document.querySelector("#save-result").textContent = IntentLabNative.saveReport(JSON.stringify(report));
+  });
+  document.querySelector("#copy-command").addEventListener("click", async () => {
+    const value = document.querySelector("#instrumentation-command").textContent.trim();
+    await navigator.clipboard.writeText(value);
+  });
+  function runShell(command) {
+    document.querySelector("#shell-command").value = command;
+    document.querySelector("#shell-output").textContent = IntentLabNative.runLocalCommand(command);
+  }
+  document.querySelector("#shell-run").addEventListener("click", () => runShell(document.querySelector("#shell-command").value));
+  document.querySelectorAll("[data-shell]").forEach(button => button.addEventListener("click", () => runShell(button.dataset.shell)));
+
+  run();
+</script>
+</body>
+</html>
