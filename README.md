@@ -2,6 +2,8 @@
 
 Static GitHub Pages source with one-tap Android Settings intent links and copyable ADB fallbacks.
 
+**Live page:** [https://specters312.github.io/](https://specters312.github.io/)
+
 The page does not include firmware, device data, credentials, exploit material, or third-party binaries. A standard webpage cannot reboot a correctly secured device; boot-mode shortcuts are provided as copyable ADB commands instead.
 
 ## Local preview
