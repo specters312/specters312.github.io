@@ -8,7 +8,7 @@ Static GitHub Pages source with one-tap Android Settings intent links and copyab
 
 **HyperOS intent inventory:** [https://specters312.github.io/hyperos-intents.html](https://specters312.github.io/hyperos-intents.html)
 
-**Generated `com.miui.*` candidates:** [https://specters312.github.io/hyperos-intents.html?family=miui](https://specters312.github.io/hyperos-intents.html?family=miui) — manifest-derived and deliberately separated from documented/confirmed intent links.
+**Generated `com.miui.*` candidates:** [https://specters312.github.io/miui-intents.html](https://specters312.github.io/miui-intents.html) — a separate manifest-derived page, deliberately kept apart from documented/confirmed intent links.
 
 **Raw HyperOS manifest data:** [https://specters312.github.io/data/xiaomi-activity-intents.json](https://specters312.github.io/data/xiaomi-activity-intents.json)
 

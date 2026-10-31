@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080d12">
+  <meta name="description" content="Generated com.miui intent candidates extracted from preserved HyperOS APK manifests.">
+  <title>Generated com.miui Intent Candidates</title>
+  <style>
+    :root { color-scheme: dark; --bg:#080d12; --panel:#111a24; --ink:#edf6ff; --muted:#9cafc3; --line:#293b4e; --blue:#68b9ff; --green:#64daa0; --orange:#ff9b57; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:radial-gradient(circle at 8% -5%,rgba(56,145,255,.22),transparent 32rem),radial-gradient(circle at 100% 4%,rgba(255,137,56,.14),transparent 28rem),var(--bg); }
+    a { color:var(--blue); } button,input,select { font:inherit; } code { color:#cae5ff; font:.82em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; overflow-wrap:anywhere; }
+    .wrap { width:min(1360px,calc(100% - 24px)); margin:0 auto; padding:32px 0 72px; }
+    nav { display:flex; flex-wrap:wrap; gap:14px; margin-bottom:24px; } nav a { color:var(--muted); text-decoration:none; font-size:.84rem; }
+    header { display:grid; grid-template-columns:1fr auto; gap:20px; align-items:end; margin-bottom:18px; }
+    .kicker { color:var(--orange); font-size:.74rem; font-weight:900; letter-spacing:.13em; text-transform:uppercase; }
+    h1 { margin:9px 0 10px; font-size:clamp(2.25rem,7vw,4.7rem); line-height:.96; letter-spacing:-.06em; }
+    .lead { max-width:850px; margin:0; color:var(--muted); line-height:1.6; }
+    .raw { padding:10px 13px; border:1px solid #35506a; border-radius:10px; text-decoration:none; white-space:nowrap; }
+    .notice { margin-bottom:16px; padding:13px 15px; border:1px solid #65492f; border-radius:13px; color:#ffd6b7; background:rgba(117,66,25,.16); font-size:.82rem; line-height:1.5; }
+    .stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; margin-bottom:16px; }
+    .stat { padding:13px; border:1px solid var(--line); border-radius:13px; background:rgba(17,26,36,.84); } .stat strong { display:block; font-size:1.5rem; } .stat span { color:var(--muted); font-size:.72rem; }
+    .toolbar { position:sticky; top:8px; z-index:10; display:grid; grid-template-columns:1fr auto; gap:9px; margin-bottom:14px; padding:10px; border:1px solid var(--line); border-radius:15px; background:rgba(8,13,18,.92); backdrop-filter:blur(16px); }
+    input,select { min-width:0; padding:11px 12px; border:1px solid var(--line); border-radius:10px; outline:0; color:var(--ink); background:#172534; } input:focus,select:focus { border-color:#4675a0; }
+    .summary { display:flex; justify-content:space-between; gap:10px; margin:0 2px 10px; color:var(--muted); font-size:.78rem; }
+    .table-wrap { overflow:auto; border:1px solid var(--line); border-radius:14px; background:rgba(12,18,26,.92); }
+    table { width:100%; min-width:980px; border-collapse:collapse; font-size:.76rem; } th,td { padding:11px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; } th { position:sticky; top:0; z-index:2; color:var(--muted); background:#101923; } tr:last-child td { border-bottom:0; }
+    .component,.uri { display:block; margin-top:4px; color:var(--muted); } .pill { display:inline-block; margin:0 4px 4px 0; padding:3px 7px; border:1px solid #3a5065; border-radius:999px; color:#bed6ed; white-space:nowrap; } .pill.good { color:#c8f7d9; border-color:#356149; } .pill.warn { color:#ffd2b4; border-color:#624831; }
+    button { padding:8px 10px; border:1px solid #35506a; border-radius:9px; color:#d9ecff; background:#17283a; cursor:pointer; font-size:.75rem; font-weight:800; } button.primary { color:#071624; border-color:transparent; background:var(--blue); } button:disabled { opacity:.42; cursor:not-allowed; }
+    .controls { display:flex; flex-wrap:wrap; gap:6px; } .pager { display:flex; justify-content:center; align-items:center; gap:9px; margin-top:14px; } .pager span { color:var(--muted); font-size:.78rem; } .loading { padding:30px; color:var(--muted); text-align:center; }
+    footer { margin-top:25px; color:var(--muted); font-size:.76rem; line-height:1.55; text-align:center; } .toast { position:fixed; right:14px; bottom:14px; z-index:30; padding:11px 14px; border:1px solid #396047; border-radius:11px; color:#d7ffe8; background:#10271a; opacity:0; transform:translateY(8px); pointer-events:none; transition:.2s ease; } .toast.show { opacity:1; transform:translateY(0); }
+    @media(max-width:800px) { header { grid-template-columns:1fr; } .raw { width:fit-content; } .stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .toolbar { position:static; grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <nav><a href="index.html">← Documented Android links</a><a href="hyperos-intents.html">Full HyperOS inventory</a><a href="intent-lab.html">Intent Lab</a></nav>
+    <header>
+      <div>
+        <div class="kicker">Manifest-derived · not runtime-confirmed</div>
+        <h1>Generated com.miui Intent Candidates</h1>
+        <p class="lead">A separate research corpus containing only <code>com.miui.*</code> activity filters extracted from preserved HyperOS APK manifests. It is deliberately kept apart from the documented Android links and from any device-confirmed result set.</p>
+      </div>
+      <a class="raw" href="data/xiaomi-activity-intents.json" download>Download source JSON</a>
+    </header>
+    <div class="notice"><strong>Candidate does not mean confirmed.</strong> A manifest declaration can still fail because the package is absent, the component is disabled, runtime checks reject the request, or the current user lacks permission. Launch buttons appear only for exported, unprotected, explicitly <code>BROWSABLE</code> entries.</div>
+    <section class="stats">
+      <div class="stat"><strong id="stat-packages">—</strong><span>com.miui packages</span></div>
+      <div class="stat"><strong id="stat-filters">—</strong><span>Manifest filters</span></div>
+      <div class="stat"><strong id="stat-cases">—</strong><span>Unique candidates</span></div>
+      <div class="stat"><strong id="stat-browser">—</strong><span>Browser-launchable candidates</span></div>
+    </section>
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Search com.miui package, component, action, URI, APK…" autocomplete="off">
+      <select id="exposure"><option value="all">All generated candidates</option><option value="browser">Browser-launchable only</option><option value="protected">Private/protected only</option></select>
+    </div>
+    <div class="summary"><span id="count">Loading candidates…</span><span>100 rows per page</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Package / component</th><th>Action / URI</th><th>Status</th><th>Evidence</th><th>Test</th></tr></thead><tbody id="rows"><tr><td colspan="5" class="loading">Loading manifest inventory…</td></tr></tbody></table></div>
+    <div class="pager"><button id="previous">Previous</button><span id="page">Page —</span><button id="next">Next</button></div>
+    <footer>This page performs no automatic invocation. Each browser test requires a separate user tap and records no remote telemetry.</footer>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script>
+    const PAGE_SIZE = 100;
+    const FORBIDDEN = new Set(["about","blob","content","data","file","intent","javascript"]);
+    let all = [], shown = [], pageIndex = 0, toastTimer;
+    const rows = document.querySelector("#rows"), search = document.querySelector("#search"), exposure = document.querySelector("#exposure");
+    function esc(value) { return String(value == null ? "" : value).replace(/[&<>'"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c];}); }
+    function toast(message) { const box=document.querySelector("#toast"); box.textContent=message; box.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(function(){box.classList.remove("show");},2200); }
+    async function copy(value) { try { await navigator.clipboard.writeText(value); } catch(_e) { const area=document.createElement("textarea"); area.value=value; document.body.appendChild(area); area.select(); document.execCommand("copy"); area.remove(); } toast("Copied ADB command"); }
+    function quote(value) { return "'"+String(value).replaceAll("'","'\\''")+"'"; }
+    function component(item) { return item.source.component.startsWith(".") ? item.source.package+item.source.component : item.source.component; }
+    function adb(item) { let value="adb shell am start -W"; if(item.action)value+=" -a "+quote(item.action); if(item.uri)value+=" -d "+quote(item.uri); return value+=" -n "+quote(item.source.package+"/"+component(item)); }
+    function launchUri(item) { if(!item.manifestBrowserCandidate||!item.uri)return null; if(!/^[A-Za-z0-9_.$]+$/.test(item.action)||!/^[A-Za-z0-9_.$]+$/.test(item.source.package))return null; const match=item.uri.match(/^([A-Za-z][A-Za-z0-9+.-]*):(.*)$/s); if(!match)return null; const scheme=match[1].toLowerCase(),tail=match[2]; if(FORBIDDEN.has(scheme)||/[;#\r\n]/.test(tail)||tail.includes("#Intent"))return null; const fallback=new URL("miui-intents.html",location.href); fallback.searchParams.set("fallback",item.id); return "intent:"+tail+"#Intent;scheme="+scheme+";action="+item.action+";category=android.intent.category.BROWSABLE;package="+item.source.package+";S.browser_fallback_url="+encodeURIComponent(fallback.href)+";end"; }
+    function merge(cases) { const values=new Map(); cases.forEach(function(item){if(!values.has(item.id))values.set(item.id,structuredClone(item));}); return Array.from(values.values()); }
+    function filter() { const query=search.value.trim().toLowerCase(), mode=exposure.value; shown=all.filter(function(item){if(query&&!item._text.includes(query))return false;if(mode==="browser"&&!item.manifestBrowserCandidate)return false;if(mode==="protected"&&item.source.exported==="true"&&!item.source.permission)return false;return true;}); pageIndex=0; render(); }
+    function render() { const pages=Math.max(1,Math.ceil(shown.length/PAGE_SIZE)); pageIndex=Math.min(pageIndex,pages-1); const start=pageIndex*PAGE_SIZE,visible=shown.slice(start,start+PAGE_SIZE); document.querySelector("#count").textContent=shown.length.toLocaleString()+" matching generated candidates"; document.querySelector("#page").textContent="Page "+(pageIndex+1)+" of "+pages; document.querySelector("#previous").disabled=pageIndex===0; document.querySelector("#next").disabled=pageIndex>=pages-1; rows.innerHTML=visible.length?visible.map(function(item,index){const absolute=start+index,uri=launchUri(item),evidence=Array.from(new Set(item.source.evidence.map(function(e){return e.source;}))).join(", ");return "<tr><td><code>"+esc(item.source.package)+"</code><span class=\"component\">"+esc(component(item))+"</span></td><td><code>"+esc(item.action||"(no action)")+"</code><span class=\"uri\">"+esc(item.uri||"No data URI")+"</span></td><td>"+(item.manifestBrowserCandidate?'<span class="pill good">generated BROWSABLE candidate</span>':'<span class="pill warn">not browser-launchable</span>')+(item.source.permission?'<span class="component">'+esc(item.source.permission)+"</span>":"")+"</td><td>"+esc(evidence)+"<span class=\"component\">"+esc(item.source.evidence[0]?.apk||"")+"</span></td><td><div class=\"controls\">"+(uri?'<button class="primary" data-launch="'+absolute+'">Launch</button>':'<button disabled>Not web-launchable</button>')+'<button data-copy="'+absolute+'">Copy ADB</button></div></td></tr>';}).join(""):'<tr><td colspan="5" class="loading">No candidates match.</td></tr>'; }
+    rows.addEventListener("click",function(event){const launch=event.target.closest("[data-launch]");if(launch){const uri=launchUri(shown[Number(launch.dataset.launch)]);if(uri)window.location.href=uri;return;}const copyButton=event.target.closest("[data-copy]");if(copyButton)copy(adb(shown[Number(copyButton.dataset.copy)]));});
+    search.addEventListener("input",filter); exposure.addEventListener("change",filter); document.querySelector("#previous").addEventListener("click",function(){if(pageIndex>0){pageIndex--;render();}}); document.querySelector("#next").addEventListener("click",function(){if((pageIndex+1)*PAGE_SIZE<shown.length){pageIndex++;render();}});
+    if(new URL(location.href).searchParams.has("fallback"))toast("Chrome returned through fallback: no matching app accepted that candidate");
+    fetch("data/xiaomi-activity-intents.json",{cache:"no-cache"}).then(function(response){if(!response.ok)throw new Error("HTTP "+response.status);return response.json();}).then(function(data){all=merge(data.cases.filter(function(item){return item.source.package.startsWith("com.miui.");})).map(function(item){item._text=[item.source.package,item.source.component,item.action,item.uri,item.source.permission].concat(item.source.evidence.flatMap(function(e){return[e.source,e.apk,e.sha256];})).join(" ").toLowerCase();return item;}); shown=all; const packages=new Set(all.map(function(item){return item.source.package;})); const filters=data.filters.filter(function(item){return item.package.startsWith("com.miui.");}); document.querySelector("#stat-packages").textContent=packages.size; document.querySelector("#stat-filters").textContent=filters.length; document.querySelector("#stat-cases").textContent=all.length; document.querySelector("#stat-browser").textContent=all.filter(function(item){return item.manifestBrowserCandidate&&launchUri(item);}).length; render();}).catch(function(error){rows.innerHTML='<tr><td colspan="5" class="loading">Unable to load candidates: '+esc(error.message)+"</td></tr>";});
+  </script>
+</body>
+</html>
