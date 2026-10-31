@@ -40,7 +40,14 @@
     .pill.hit { color:#c9f8dc; border-color:#37674b; }
     .note { margin-top:12px; color:var(--muted); font-size:.74rem; line-height:1.5; }
     .shell-row { display:grid; grid-template-columns:1fr auto; gap:8px; }
+    .fs-path-row { display:grid; grid-template-columns:auto auto minmax(0,1fr) auto; gap:8px; margin:10px 0; }
+    .fs-path-link { padding:0; border:0; color:var(--blue); background:transparent; text-align:left; font:inherit; font-weight:800; overflow-wrap:anywhere; }
+    .fs-path-link:hover { text-decoration:underline; }
+    .fs-meta { max-height:190px; margin-bottom:10px; }
+    .fs-preview { max-height:48vh; margin-top:10px; }
+    .fs-error { color:#ffb99e; }
     @media(max-width:800px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:1fr}.wide{grid-column:auto}}
+    @media(max-width:620px){.fs-path-row{grid-template-columns:1fr 1fr}.fs-path-row input{grid-column:1/-1;grid-row:1}.fs-path-row button:last-child{grid-column:1/-1}}
   </style>
 </head>
 <body>
@@ -74,6 +81,27 @@
         <button id="rerun" class="primary">Run full enumeration again</button>
         <button id="save">Save another report</button>
       </div>
+    </section>
+
+    <section class="panel wide">
+      <h2>Read-only filesystem explorer</h2>
+      <p class="sub">Browse exactly what this app UID can see. Directory metadata, symlinks, access flags, and bounded text/hex previews are read locally; denied paths stay denied. This explorer cannot write, rename, delete, upload, or serve files.</p>
+      <div id="fs-roots" class="buttons"></div>
+      <div class="fs-path-row">
+        <button id="fs-up">Up</button>
+        <button id="fs-refresh">Refresh</button>
+        <input id="fs-path" value="/" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Filesystem path">
+        <button id="fs-go" class="primary">Open path</button>
+      </div>
+      <pre id="fs-meta" class="fs-meta">Loading filesystem roots…</pre>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Type</th><th>Size</th><th>Access</th><th>Modified</th></tr></thead>
+          <tbody id="fs-entries"><tr><td colspan="5">Waiting…</td></tr></tbody>
+        </table>
+      </div>
+      <pre id="fs-preview" class="fs-preview">Select a readable file for a bounded preview.</pre>
+      <p class="note">Previews are limited to 256 KiB and hex output to 8 KiB. The app requests no broad-storage or network permission, so this view is also a direct test of the sandbox boundaries that apply to the APK.</p>
     </section>
 
     <section class="panel wide">
@@ -124,6 +152,8 @@
 
   let report = null;
   let renderedRows = [];
+  let currentFsPath = "/";
+  let currentFsParent = null;
 
   function parseNative(value) {
     try { return JSON.parse(value); }
@@ -136,6 +166,123 @@
 
   function handlerNames(values) {
     return (values || []).map(item => `${item.package}/${item.activity}`).join("\n");
+  }
+
+  function formatBytes(value) {
+    if (value === null || value === undefined) return "—";
+    const amount = Number(value);
+    if (!Number.isFinite(amount)) return String(value);
+    if (amount < 1024) return `${amount} B`;
+    const units = ["KiB", "MiB", "GiB", "TiB"];
+    let scaled = amount;
+    let unit = -1;
+    do { scaled /= 1024; unit++; } while (scaled >= 1024 && unit < units.length - 1);
+    return `${scaled.toFixed(scaled >= 10 ? 1 : 2)} ${units[unit]}`;
+  }
+
+  function accessFlags(entry) {
+    return `${entry.readable ? "r" : "-"}${entry.writable ? "w" : "-"}${entry.executable ? "x" : "-"}`;
+  }
+
+  function renderFsEntries(result) {
+    const body = document.querySelector("#fs-entries");
+    const entries = result.entries || [];
+    if (!entries.length) {
+      const message = result.error
+        ? `<span class="fs-error">${escapeHtml(result.error)}: ${escapeHtml(result.message || "access failed")}</span>`
+        : "Directory is empty.";
+      body.innerHTML = `<tr><td colspan="5">${message}</td></tr>`;
+      return;
+    }
+    body.innerHTML = entries.map(entry => {
+      const navigable = entry.directory || entry.file;
+      const attribute = entry.directory ? "data-fs-directory" : entry.file ? "data-fs-file" : "";
+      const name = navigable
+        ? `<button class="fs-path-link" ${attribute}="${escapeHtml(entry.path)}">${escapeHtml(entry.name)}</button>`
+        : escapeHtml(entry.name);
+      const type = entry.symbolicLink && entry.linkTarget
+        ? `symlink → ${escapeHtml(entry.linkTarget)}${entry.directory ? " (directory)" : ""}`
+        : escapeHtml(entry.type);
+      return `<tr>
+        <td>${name}</td>
+        <td>${type}</td>
+        <td>${formatBytes(entry.size)}</td>
+        <td><code>${accessFlags(entry)}</code></td>
+        <td>${escapeHtml(entry.lastModifiedIso || "—")}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  function showFilePreview(path) {
+    const result = parseNative(IntentLabNative.readFilePreview(path, 256 * 1024));
+    const summary = {...result};
+    delete summary.text;
+    delete summary.hex;
+    document.querySelector("#fs-meta").textContent = JSON.stringify(summary, null, 2);
+    if (result.error) {
+      document.querySelector("#fs-preview").textContent = `${result.error}: ${result.message || "Unable to read file"}`;
+      return;
+    }
+    const sections = [];
+    if (result.text !== null && result.text !== undefined) {
+      sections.push(`TEXT (${result.previewBytes} bytes${result.truncated ? ", truncated" : ""})\n\n${result.text}`);
+    } else {
+      sections.push(`BINARY (${result.previewBytes} bytes${result.truncated ? ", truncated" : ""})`);
+    }
+    sections.push(`HEX (${result.hexBytes} bytes shown)\n\n${result.hex || ""}`);
+    document.querySelector("#fs-preview").textContent = sections.join("\n\n────────────────────────────────────────\n\n");
+  }
+
+  function openFsPath(path) {
+    if (!window.IntentLabNative) return;
+    const requested = String(path || "").trim();
+    if (!requested) return;
+    document.querySelector("#fs-path").value = requested;
+    document.querySelector("#fs-preview").textContent = "Reading path metadata…";
+    const result = parseNative(IntentLabNative.listPath(requested));
+    currentFsPath = result.path || requested;
+    currentFsParent = result.parent ?? null;
+    document.querySelector("#fs-path").value = currentFsPath;
+    document.querySelector("#fs-up").disabled = !currentFsParent;
+    document.querySelector("#fs-meta").textContent = JSON.stringify({
+      path: result.path || requested,
+      canonicalPath: result.canonicalPath,
+      parent: result.parent,
+      metadata: result.metadata,
+      entryCount: result.entryCount,
+      returnedCount: result.returnedCount,
+      truncated: result.truncated,
+      error: result.error,
+      message: result.message
+    }, null, 2);
+    renderFsEntries(result);
+    if (result.metadata?.file) {
+      showFilePreview(currentFsPath);
+    } else if (result.metadata?.directory) {
+      const suffix = result.truncated ? ` Showing the first ${result.returnedCount} of ${result.entryCount} entries.` : "";
+      document.querySelector("#fs-preview").textContent = result.error
+        ? `${result.error}: ${result.message || "Unable to enumerate directory"}`
+        : `Directory opened.${suffix} Select a file for a bounded text and hex preview.`;
+    } else {
+      document.querySelector("#fs-preview").textContent = result.error
+        ? `${result.error}: ${result.message || "Unable to open path"}`
+        : "The selected path is neither a regular file nor a directory.";
+    }
+  }
+
+  function loadFileSystemRoots() {
+    if (!window.IntentLabNative) return;
+    const result = parseNative(IntentLabNative.getFileSystemRoots());
+    const container = document.querySelector("#fs-roots");
+    if (result.error) {
+      container.innerHTML = `<span class="fs-error">${escapeHtml(result.error)}: ${escapeHtml(result.message || "Unable to load roots")}</span>`;
+      return;
+    }
+    container.innerHTML = (result.roots || []).map(root =>
+      `<button data-fs-root="${escapeHtml(root.path)}">${escapeHtml(root.label)}</button>`
+    ).join("");
+    const initial = (result.roots || []).find(root => root.label === "App data") || result.roots?.[0];
+    if (initial) openFsPath(initial.path);
   }
 
   function renderResults() {
@@ -241,7 +388,24 @@
   }
   document.querySelector("#shell-run").addEventListener("click", () => runShell(document.querySelector("#shell-command").value));
   document.querySelectorAll("[data-shell]").forEach(button => button.addEventListener("click", () => runShell(button.dataset.shell)));
+  document.querySelector("#fs-roots").addEventListener("click", event => {
+    const button = event.target.closest("[data-fs-root]");
+    if (button) openFsPath(button.dataset.fsRoot);
+  });
+  document.querySelector("#fs-entries").addEventListener("click", event => {
+    const directory = event.target.closest("[data-fs-directory]");
+    const file = event.target.closest("[data-fs-file]");
+    if (directory) openFsPath(directory.dataset.fsDirectory);
+    else if (file) openFsPath(file.dataset.fsFile);
+  });
+  document.querySelector("#fs-go").addEventListener("click", () => openFsPath(document.querySelector("#fs-path").value));
+  document.querySelector("#fs-refresh").addEventListener("click", () => openFsPath(currentFsPath));
+  document.querySelector("#fs-up").addEventListener("click", () => currentFsParent && openFsPath(currentFsParent));
+  document.querySelector("#fs-path").addEventListener("keydown", event => {
+    if (event.key === "Enter") openFsPath(event.currentTarget.value);
+  });
 
+  loadFileSystemRoots();
   run();
 </script>
 </body>

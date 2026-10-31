@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#080d12">
-  <meta name="description" content="Controlled Android browser-intent test runner with local logs.">
+  <meta name="description" content="Controlled Android browser-intent test runner and local read-only file explorer.">
   <title>Android Intent Lab</title>
   <style>
     :root {
@@ -33,7 +33,7 @@
         var(--bg);
     }
 
-    button, textarea { font: inherit; }
+    button, textarea, input { font: inherit; }
     a { color: var(--blue); }
     code { color: #cae5ff; font: .82em/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
 
@@ -114,6 +114,14 @@
     .note { margin-top: 15px; color: var(--muted); font-size: .76rem; line-height: 1.5; }
     .native-card { margin-bottom: 20px; border-color: rgba(100, 218, 160, .38); background: linear-gradient(145deg, rgba(20, 52, 39, .88), rgba(13, 25, 24, .94)); }
     .download { display:inline-block; padding:10px 13px; border-radius:10px; color:#071b13; background:var(--green); text-decoration:none; font-size:.8rem; font-weight:900; }
+    .webfs-card { margin-bottom:20px; border-color:rgba(104,185,255,.35); }
+    .webfs-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .webfs-breadcrumb { margin:12px 0; padding:10px 12px; border:1px solid var(--line); border-radius:11px; color:#cae5ff; background:#080e14; font:.75rem/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; overflow-wrap:anywhere; }
+    .webfs-table { max-height:46vh; }
+    .webfs-link { padding:0; border:0; color:var(--blue); background:transparent; text-align:left; font:inherit; font-weight:800; overflow-wrap:anywhere; }
+    .webfs-link:hover { text-decoration:underline; filter:none; }
+    .webfs-meta, .webfs-preview { max-height:38vh; overflow:auto; margin:10px 0 0; padding:12px; border:1px solid var(--line); border-radius:11px; color:#cae5ff; background:#070c11; font:.72rem/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .webfs-preview { max-height:52vh; }
     footer { margin-top: 28px; color: var(--muted); font-size: .75rem; line-height: 1.55; text-align: center; }
 
     .toast { position: fixed; right: 14px; bottom: 14px; z-index: 20; max-width: min(380px, calc(100% - 28px)); padding: 11px 14px; border: 1px solid #396047; border-radius: 11px; color: #d7ffe8; background: #10271a; opacity: 0; transform: translateY(8px); pointer-events: none; transition: .2s ease; }
@@ -153,13 +161,37 @@
 
     <section class="panel native-card">
       <h2>Need automatic enumeration?</h2>
-      <p class="sub">The native companion automatically resolves the complete corpus, inventories its host package and WebView provider, enumerates installed packages, and saves a local JSON report. It includes 475 action/URI cases generated from 229 BROWSABLE filters across 419 unique APKs preserved from the two prior firmware sets.</p>
+      <p class="sub">The native companion automatically resolves the complete corpus, inventories its host package and WebView provider, enumerates installed packages, and includes an offline read-only filesystem explorer showing exactly what the app UID can access. It includes 475 action/URI cases generated from 229 BROWSABLE filters across 419 unique APKs preserved from the two prior firmware sets.</p>
       <div class="buttons">
-        <a class="download" href="downloads/android-intent-lab-v1.0-debug.apk" download>Download Android Intent Lab APK</a>
+        <a class="download" href="downloads/android-intent-lab-v1.1-debug.apk" download>Download Android Intent Lab APK</a>
         <a class="download" href="https://github.com/specters312/specters312.github.io/tree/main/android-app">View source</a>
       </div>
-      <p class="note"><code>adb install -r android-intent-lab-v1.0-debug.apk</code><br>SHA-256: <code>90dae704dfb8a88769733180ee7b347ce4f208350549377253c6f0ac2660eb6c</code></p>
+      <p class="note"><code>adb install -r android-intent-lab-v1.1-debug.apk</code><br>SHA-256: <code>5d171247d3cd085c490bd22ec666834f559b8e143d3276cf73faca2f706b402f</code></p>
       <p class="note">On Android: tap Download, open the completed download, allow this browser under “Install unknown apps” if prompted, then confirm Install. Android does not permit a webpage to skip those confirmation steps.</p>
+    </section>
+
+    <section class="panel webfs-card">
+      <h2>Read-only browser file explorer</h2>
+      <p class="sub">Explore a directory or files you explicitly grant to this webpage. Everything stays in browser memory: there is no upload, network request, write, rename, or delete operation. Browser sandboxing prevents this page from inspecting the APK's private app-data directory; use the APK explorer above to measure that app UID's filesystem access.</p>
+      <div class="webfs-toolbar">
+        <button id="webfs-pick-directory" class="primary">Choose directory</button>
+        <button id="webfs-pick-folder">Folder-picker fallback</button>
+        <button id="webfs-pick-files">Choose files</button>
+        <button id="webfs-up" disabled>Up</button>
+        <button id="webfs-clear" class="danger" disabled>Clear selection</button>
+      </div>
+      <input id="webfs-folder-input" type="file" webkitdirectory multiple hidden>
+      <input id="webfs-files-input" type="file" multiple hidden>
+      <div id="webfs-breadcrumb" class="webfs-breadcrumb">No directory or files selected.</div>
+      <div class="table-wrap webfs-table">
+        <table>
+          <thead><tr><th>Name</th><th>Type</th><th>Size</th><th>Modified</th></tr></thead>
+          <tbody id="webfs-entries"><tr><td colspan="4">Choose a directory or files to begin.</td></tr></tbody>
+        </table>
+      </div>
+      <pre id="webfs-meta" class="webfs-meta">Browser capability check pending…</pre>
+      <pre id="webfs-preview" class="webfs-preview">Select a file for a bounded text and hex preview.</pre>
+      <p class="note">The page reads at most 256 KiB for a preview and displays at most 8 KiB as hex. Selection handles and file contents are not stored in <code>localStorage</code> and disappear when the page is closed or refreshed.</p>
     </section>
 
     <div class="layout">
@@ -302,6 +334,8 @@
       pending: "android-intent-lab.pending.v1"
     };
     const MAX_ATTEMPTS = 1000;
+    const WEBFS_PREVIEW_LIMIT = 256 * 1024;
+    const WEBFS_HEX_LIMIT = 8 * 1024;
     const actionPattern = /^[A-Za-z0-9_$]+(?:\.[A-Za-z0-9_$]+)+$/;
 
     const corpus = document.querySelector("#corpus");
@@ -311,6 +345,9 @@
     const logBody = document.querySelector("#log-body");
     const toast = document.querySelector("#toast");
     let toastTimer;
+    let webFsMode = null;
+    let webFsStack = [];
+    let webFsEntries = [];
 
     function readJson(key, fallback) {
       try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
@@ -463,6 +500,185 @@
       return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
     }
 
+    function formatBytes(value) {
+      if (value === null || value === undefined) return "—";
+      const amount = Number(value);
+      if (!Number.isFinite(amount)) return String(value);
+      if (amount < 1024) return `${amount} B`;
+      const units = ["KiB", "MiB", "GiB", "TiB"];
+      let scaled = amount;
+      let unit = -1;
+      do { scaled /= 1024; unit += 1; } while (scaled >= 1024 && unit < units.length - 1);
+      return `${scaled.toFixed(scaled >= 10 ? 1 : 2)} ${units[unit]}`;
+    }
+
+    function isProbablyText(bytes) {
+      if (!bytes.length) return true;
+      let controls = 0;
+      for (const value of bytes) {
+        if (value === 0) return false;
+        if (value < 0x20 && ![0x09, 0x0a, 0x0c, 0x0d].includes(value)) controls += 1;
+      }
+      return controls * 20 <= bytes.length;
+    }
+
+    function hexDump(bytes, maximum = WEBFS_HEX_LIMIT) {
+      const length = Math.min(bytes.length, maximum);
+      const rows = [];
+      for (let offset = 0; offset < length; offset += 16) {
+        const row = bytes.slice(offset, Math.min(offset + 16, length));
+        const hex = [...row].map((value) => value.toString(16).padStart(2, "0"));
+        const left = `${hex.slice(0, 8).join(" ").padEnd(23)}  ${hex.slice(8).join(" ").padEnd(23)}`;
+        const ascii = [...row].map((value) => value >= 0x20 && value <= 0x7e ? String.fromCharCode(value) : ".").join("");
+        rows.push(`${offset.toString(16).padStart(8, "0")}  ${left} | ${ascii}`);
+      }
+      return rows.join("\n");
+    }
+
+    async function previewBrowserFile(file, displayPath) {
+      const previewBox = document.querySelector("#webfs-preview");
+      const metaBox = document.querySelector("#webfs-meta");
+      previewBox.textContent = "Reading local preview…";
+      try {
+        const bytes = new Uint8Array(await file.slice(0, WEBFS_PREVIEW_LIMIT).arrayBuffer());
+        const text = isProbablyText(bytes);
+        const truncated = file.size > bytes.length;
+        metaBox.textContent = JSON.stringify({
+          path: displayPath,
+          name: file.name,
+          type: file.type || "unknown",
+          size: file.size,
+          lastModified: file.lastModified ? new Date(file.lastModified).toISOString() : null,
+          previewBytes: bytes.length,
+          truncated,
+          format: text ? "utf-8-text" : "binary",
+          localOnly: true,
+          readOnly: true
+        }, null, 2);
+        const sections = [];
+        if (text) sections.push(`TEXT (${bytes.length} bytes${truncated ? ", truncated" : ""})\n\n${new TextDecoder().decode(bytes)}`);
+        else sections.push(`BINARY (${bytes.length} bytes${truncated ? ", truncated" : ""})`);
+        sections.push(`HEX (${Math.min(bytes.length, WEBFS_HEX_LIMIT)} bytes shown)\n\n${hexDump(bytes)}`);
+        previewBox.textContent = sections.join("\n\n────────────────────────────────────────\n\n");
+      } catch (error) {
+        metaBox.textContent = JSON.stringify({ path: displayPath, error: error.name, message: error.message }, null, 2);
+        previewBox.textContent = `${error.name}: ${error.message}`;
+      }
+    }
+
+    function makeSelectionTree(files) {
+      const root = { kind: "directory", name: "Selected files", directories: new Map(), files: [] };
+      for (const file of files) {
+        const relativePath = file.webkitRelativePath || file.name;
+        const parts = relativePath.split("/").filter(Boolean);
+        let node = root;
+        for (const part of parts.slice(0, -1)) {
+          if (!node.directories.has(part)) {
+            node.directories.set(part, { kind: "directory", name: part, directories: new Map(), files: [] });
+          }
+          node = node.directories.get(part);
+        }
+        node.files.push({ kind: "file", name: parts.at(-1) || file.name, file, relativePath });
+      }
+      return root;
+    }
+
+    function selectionEntries(node) {
+      return [
+        ...[...node.directories.values()].map((directory) => ({ ...directory, size: null, lastModified: null })),
+        ...node.files.map((entry) => ({ ...entry, size: entry.file.size, lastModified: entry.file.lastModified }))
+      ].sort((left, right) => left.kind === right.kind
+        ? left.name.localeCompare(right.name)
+        : left.kind === "directory" ? -1 : 1);
+    }
+
+    async function directoryHandleEntries(handle) {
+      const handles = [];
+      for await (const entry of handle.values()) handles.push(entry);
+      handles.sort((left, right) => left.kind === right.kind
+        ? left.name.localeCompare(right.name)
+        : left.kind === "directory" ? -1 : 1);
+      const limited = handles.slice(0, 1000);
+      return Promise.all(limited.map(async (entry) => {
+        if (entry.kind === "directory") return { kind: "directory", name: entry.name, handle: entry, size: null, lastModified: null };
+        try {
+          const file = await entry.getFile();
+          return { kind: "file", name: entry.name, handle: entry, file, size: file.size, lastModified: file.lastModified };
+        } catch (error) {
+          return { kind: "file", name: entry.name, handle: entry, size: null, lastModified: null, error: `${error.name}: ${error.message}` };
+        }
+      }));
+    }
+
+    function renderBrowserFsTable(entries, error = null) {
+      const body = document.querySelector("#webfs-entries");
+      if (error) {
+        body.innerHTML = `<tr><td colspan="4">${escapeHtml(error)}</td></tr>`;
+        return;
+      }
+      body.innerHTML = entries.length ? entries.map((entry, index) => `<tr>
+        <td><button class="webfs-link" data-webfs-index="${index}">${escapeHtml(entry.name)}</button></td>
+        <td>${escapeHtml(entry.kind)}${entry.error ? `<br><small>${escapeHtml(entry.error)}</small>` : ""}</td>
+        <td>${formatBytes(entry.size)}</td>
+        <td>${entry.lastModified ? escapeHtml(new Date(entry.lastModified).toISOString()) : "—"}</td>
+      </tr>`).join("") : `<tr><td colspan="4">Directory is empty.</td></tr>`;
+    }
+
+    async function renderBrowserFs() {
+      const breadcrumb = document.querySelector("#webfs-breadcrumb");
+      const meta = document.querySelector("#webfs-meta");
+      const up = document.querySelector("#webfs-up");
+      const clear = document.querySelector("#webfs-clear");
+      up.disabled = webFsStack.length <= 1;
+      clear.disabled = !webFsMode;
+      if (!webFsMode) {
+        breadcrumb.textContent = "No directory or files selected.";
+        renderBrowserFsTable([]);
+        document.querySelector("#webfs-entries").innerHTML = `<tr><td colspan="4">Choose a directory or files to begin.</td></tr>`;
+        meta.textContent = JSON.stringify({
+          secureContext: window.isSecureContext,
+          directoryPicker: typeof window.showDirectoryPicker === "function",
+          fallbackFolderInput: "webkitdirectory" in document.createElement("input"),
+          localOnly: true,
+          readOnly: true
+        }, null, 2);
+        return;
+      }
+
+      const labels = webFsStack.map((entry) => entry.name);
+      breadcrumb.textContent = labels.join(" / ");
+      meta.textContent = "Enumerating the selected directory locally…";
+      try {
+        const current = webFsStack.at(-1);
+        webFsEntries = webFsMode === "handle"
+          ? await directoryHandleEntries(current.handle)
+          : selectionEntries(current.node);
+        renderBrowserFsTable(webFsEntries);
+        meta.textContent = JSON.stringify({
+          mode: webFsMode === "handle" ? "File System Access API" : "selected file/folder snapshot",
+          path: labels.join(" / "),
+          entries: webFsEntries.length,
+          localOnly: true,
+          readOnly: true
+        }, null, 2);
+        document.querySelector("#webfs-preview").textContent = "Select a file for a bounded text and hex preview.";
+      } catch (error) {
+        webFsEntries = [];
+        renderBrowserFsTable([], `${error.name}: ${error.message}`);
+        meta.textContent = JSON.stringify({ error: error.name, message: error.message }, null, 2);
+      }
+    }
+
+    async function useSelectedFiles(fileList, label) {
+      const files = [...fileList];
+      if (!files.length) return;
+      const root = makeSelectionTree(files);
+      webFsMode = "selection";
+      webFsStack = [{ name: label, node: root }];
+      await renderBrowserFs();
+      showToast(`Loaded ${files.length} local file${files.length === 1 ? "" : "s"}`);
+    }
+
     function render() {
       const run = getRun();
       const attempts = getAttempts();
@@ -594,6 +810,63 @@
       render();
     });
 
+    document.querySelector("#webfs-pick-directory").addEventListener("click", async () => {
+      if (typeof window.showDirectoryPicker !== "function") {
+        document.querySelector("#webfs-folder-input").click();
+        return;
+      }
+      try {
+        const handle = await window.showDirectoryPicker({ mode: "read" });
+        webFsMode = "handle";
+        webFsStack = [{ name: handle.name, handle }];
+        await renderBrowserFs();
+      } catch (error) {
+        if (error.name !== "AbortError") showToast(`${error.name}: ${error.message}`);
+      }
+    });
+
+    document.querySelector("#webfs-pick-folder").addEventListener("click", () => document.querySelector("#webfs-folder-input").click());
+    document.querySelector("#webfs-pick-files").addEventListener("click", () => document.querySelector("#webfs-files-input").click());
+    document.querySelector("#webfs-folder-input").addEventListener("change", async (event) => {
+      await useSelectedFiles(event.target.files, "Selected folder");
+      event.target.value = "";
+    });
+    document.querySelector("#webfs-files-input").addEventListener("change", async (event) => {
+      await useSelectedFiles(event.target.files, "Selected files");
+      event.target.value = "";
+    });
+    document.querySelector("#webfs-up").addEventListener("click", async () => {
+      if (webFsStack.length > 1) webFsStack.pop();
+      await renderBrowserFs();
+    });
+    document.querySelector("#webfs-clear").addEventListener("click", async () => {
+      webFsMode = null;
+      webFsStack = [];
+      webFsEntries = [];
+      await renderBrowserFs();
+      document.querySelector("#webfs-preview").textContent = "Select a file for a bounded text and hex preview.";
+    });
+    document.querySelector("#webfs-entries").addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-webfs-index]");
+      if (!button) return;
+      const entry = webFsEntries[Number(button.dataset.webfsIndex)];
+      if (!entry) return;
+      if (entry.kind === "directory") {
+        webFsStack.push(webFsMode === "handle"
+          ? { name: entry.name, handle: entry.handle }
+          : { name: entry.name, node: entry });
+        await renderBrowserFs();
+        return;
+      }
+      try {
+        const file = entry.file || await entry.handle.getFile();
+        const path = [...webFsStack.map((part) => part.name), entry.name].join(" / ");
+        await previewBrowserFile(file, path);
+      } catch (error) {
+        document.querySelector("#webfs-preview").textContent = `${error.name}: ${error.message}`;
+      }
+    });
+
     document.addEventListener("visibilitychange", () => {
       const pending = readJson(KEYS.pending, null);
       if (!pending) return;
@@ -623,6 +896,7 @@
 
     processFallback();
     if (!corpus.value) corpus.value = COMMON_ACTIONS.join("\n");
+    renderBrowserFs();
     render();
   </script>
 </body>

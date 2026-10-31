@@ -4,8 +4,11 @@ The native companion removes the two limitations that a normal webpage cannot re
 
 - It automatically resolves the complete corpus through Android `PackageManager` without one tap per case.
 - It inventories its host package, bundled components, current WebView provider, and installed packages.
+- It provides a read-only filesystem explorer showing the paths, metadata, symlinks, access flags, and bounded file previews available to the app UID.
 
 The app loads only APK-bundled HTML. Network loads and navigation are blocked before the JavaScript bridge is attached.
+
+The filesystem explorer starts at the app data, files, cache, code cache, no-backup, app-specific external-storage, `/proc/self`, shared-storage, and filesystem-root views. It supports direct path entry, directory navigation, and text/hex previews capped at 256 KiB. It has no write, rename, delete, upload, listener, or file-serving operation; Android sandbox and SELinux denials are reported as inaccessible paths.
 
 The native UI also includes a local one-line command console. It runs `/system/bin/sh` as the app's sandboxed UID, has a 15-second timeout and 1 MiB output cap, and has no network permission, listener, background service, or remote command channel. It is not an ADB or root shell unless a separate `su` implementation explicitly grants access.
 
