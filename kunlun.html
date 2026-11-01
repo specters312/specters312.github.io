@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080d12">
+<title>Kunlun KP105 Intents</title>
+<style>
+:root{color-scheme:dark;--bg:#080d12;--panel:#101821;--ink:#edf6ff;--muted:#9badc0;--line:#26384a;--blue:#69b9ff;--green:#61d69c;--orange:#ff9650;--red:#ff7777}
+*{box-sizing:border-box;margin:0}
+body{font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--bg);padding:20px;min-height:100vh}
+h1{font-size:1.8rem;margin-bottom:6px}
+.sub{color:var(--muted);font-size:.85rem;margin-bottom:24px}
+h2{font-size:1.1rem;color:var(--orange);margin:28px 0 12px;padding-top:16px;border-top:1px solid var(--line)}
+h2:first-of-type{border-top:none;margin-top:16px}
+.btn{display:block;padding:16px 18px;margin:8px 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--ink);text-decoration:none;font-size:1rem;transition:.15s}
+.btn:active{transform:scale(.97);background:var(--line)}
+.btn .label{font-weight:600}
+.btn .detail{display:block;color:var(--muted);font-size:.78rem;margin-top:3px;word-break:break-all}
+.btn.hi{border-color:var(--green);background:#0d1f17}
+.btn.warn{border-color:var(--red);background:#1f0d0d}
+.btn.mid{border-color:var(--orange);background:#1f170d}
+.copy{display:inline-block;margin:4px 0 4px 12px;padding:4px 10px;font-size:.72rem;background:var(--line);border:none;color:var(--ink);border-radius:5px;cursor:pointer}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(8px);background:#10271a;border:1px solid #396047;color:#d7ffe8;padding:10px 18px;border-radius:10px;font-size:.85rem;opacity:0;transition:.2s;pointer-events:none;z-index:9}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+pre{background:var(--panel);padding:12px;border-radius:8px;overflow-x:auto;font-size:.8rem;margin:8px 0;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<h1>Kunlun KP105</h1>
+<p class="sub">SA8295P head unit &bull; intent:// links for the on-board browser</p>
+
+<h2>USB &amp; ADB</h2>
+
+<a class="btn hi" href="intent:#Intent;component=com.android.settings/com.android.settings.connecteddevice.usb.UsbModeChooserActivity;end">
+  <span class="label">USB Mode Chooser</span>
+  <span class="detail">com.android.settings/.connecteddevice.usb.UsbModeChooserActivity</span>
+</a>
+
+<a class="btn hi" href="intent:#Intent;action=android.settings.APPLICATION_DEVELOPMENT_SETTINGS;end">
+  <span class="label">Developer Options</span>
+  <span class="detail">android.settings.APPLICATION_DEVELOPMENT_SETTINGS</span>
+</a>
+
+<a class="btn hi" href="intent:#Intent;action=android.settings.APPLICATION_DEVELOPMENT_SETTINGS;category=android.intent.category.DEFAULT;end">
+  <span class="label">Developer Options (alt)</span>
+  <span class="detail">with DEFAULT category</span>
+</a>
+
+<a class="btn" href="intent:#Intent;action=android.settings.DEVICE_INFO_SETTINGS;end">
+  <span class="label">Device Info (tap build # for dev mode)</span>
+  <span class="detail">android.settings.DEVICE_INFO_SETTINGS</span>
+</a>
+
+<a class="btn" href="intent:#Intent;action=android.settings.USB_SETTINGS;end">
+  <span class="label">USB Settings</span>
+  <span class="detail">android.settings.USB_SETTINGS</span>
+</a>
+
+<h2>System Settings</h2>
+
+<a class="btn" href="intent:#Intent;action=android.settings.SETTINGS;end">
+  <span class="label">System Settings</span>
+  <span class="detail">android.settings.SETTINGS</span>
+</a>
+
+<a class="btn" href="intent:#Intent;action=android.settings.WIFI_SETTINGS;end">
+  <span class="label">WiFi Settings</span>
+  <span class="detail">android.settings.WIFI_SETTINGS</span>
+</a>
+
+<a class="btn" href="intent:#Intent;action=android.settings.SECURITY_SETTINGS;end">
+  <span class="label">Security Settings</span>
+  <span class="detail">android.settings.SECURITY_SETTINGS</span>
+</a>
+
+<a class="btn" href="intent:#Intent;action=android.settings.BLUETOOTH_SETTINGS;end">
+  <span class="label">Bluetooth Settings</span>
+  <span class="detail">android.settings.BLUETOOTH_SETTINGS</span>
+</a>
+
+<a class="btn" href="intent:#Intent;action=android.settings.NETWORK_OPERATOR_SETTINGS;end">
+  <span class="label">Network Settings</span>
+  <span class="detail">android.settings.NETWORK_OPERATOR_SETTINGS</span>
+</a>
+
+<h2>PhoneApp / Car</h2>
+
+<a class="btn mid" href="intent:#Intent;component=com.mi.car.phoneapp/com.mi.car.padapp.PhoneMainActivity;end">
+  <span class="label">PhoneApp (phoneapp/padapp)</span>
+  <span class="detail">com.mi.car.phoneapp / com.mi.car.padapp.PhoneMainActivity</span>
+</a>
+
+<a class="btn mid" href="intent:#Intent;component=com.mi.car.padapp/.PhoneMainActivity;end">
+  <span class="label">PhoneApp (padapp direct)</span>
+  <span class="detail">com.mi.car.padapp/.PhoneMainActivity</span>
+</a>
+
+<a class="btn" href="intent:#Intent;component=com.xiaomi.misettings/.MiSettings;end">
+  <span class="label">Xiaomi MiSettings</span>
+  <span class="detail">com.xiaomi.misettings/.MiSettings</span>
+</a>
+
+<h2>Factory Test / CIT</h2>
+
+<a class="btn warn" href="intent:#Intent;component=com.longcheertel.cit/.CitSampleActivity;end">
+  <span class="label">FQC Factory Test (CitSample)</span>
+  <span class="detail">com.longcheertel.cit/.CitSampleActivity</span>
+</a>
+
+<a class="btn warn" href="intent:#Intent;component=com.longcheertel.cit/.CitMainActivity;end">
+  <span class="label">CIT Main</span>
+  <span class="detail">com.longcheertel.cit/.CitMainActivity</span>
+</a>
+
+<a class="btn warn" href="intent:#Intent;component=com.longcheertel.cit/.Cit2MainActivity;end">
+  <span class="label">CIT 2</span>
+  <span class="detail">com.longcheertel.cit/.Cit2MainActivity</span>
+</a>
+
+<a class="btn warn" href="intent:#Intent;component=com.longcheertel.cit/.Cit3MainActivity;end">
+  <span class="label">CIT 3</span>
+  <span class="detail">com.longcheertel.cit/.Cit3MainActivity</span>
+</a>
+
+<a class="btn warn" href="intent:#Intent;component=com.longcheertel.cit/.EncryptedActivity;end">
+  <span class="label">CIT Encrypted</span>
+  <span class="detail">com.longcheertel.cit/.EncryptedActivity</span>
+</a>
+
+<a class="btn warn" href="intent:#Intent;component=com.longcheertel.AutoTest/.CitMainActivity;end">
+  <span class="label">AutoTest Main</span>
+  <span class="detail">com.longcheertel.AutoTest/.CitMainActivity</span>
+</a>
+
+<h2>Engineering Secret Codes</h2>
+
+<a class="btn warn" href="intent:#Intent;action=android.provider.Telephony.SECRET_CODE;scheme=android_secret_code;authority=6484;end">
+  <span class="label">*#*#6484#*#* Engineering Mode</span>
+  <span class="detail">android.provider.Telephony.SECRET_CODE://6484</span>
+</a>
+
+<a class="btn warn" href="intent:#Intent;action=android.provider.Telephony.SECRET_CODE;scheme=android_secret_code;authority=64663;end">
+  <span class="label">*#*#64663#*#* Factory Test</span>
+  <span class="detail">SECRET_CODE://64663</span>
+</a>
+
+<a class="btn" href="intent:#Intent;action=android.provider.Telephony.SECRET_CODE;scheme=android_secret_code;authority=284;end">
+  <span class="label">*#*#284#*#* Bugreport</span>
+  <span class="detail">SECRET_CODE://284</span>
+</a>
+
+<h2>Debug / Bugreport</h2>
+
+<a class="btn" href="intent:#Intent;component=com.miui.bugreport/.BugreportActivity;end">
+  <span class="label">MIUI Bugreport</span>
+  <span class="detail">com.miui.bugreport/.BugreportActivity</span>
+</a>
+
+<a class="btn" href="intent:#Intent;action=com.miui.bugreport.service.action.CONFIRM_DIALOG;package=com.miui.bugreport;S.android_secret_code=284;end">
+  <span class="label">Bugreport Confirm (from PhoneApp)</span>
+  <span class="detail">com.miui.bugreport CONFIRM_DIALOG</span>
+</a>
+
+<a class="btn" href="intent:#Intent;component=com.android.traceur/.MainTvActivity;end">
+  <span class="label">System Trace (Traceur)</span>
+  <span class="detail">com.android.traceur/.MainTvActivity</span>
+</a>
+
+<h2>File / App Management</h2>
+
+<a class="btn" href="intent:#Intent;component=com.android.fileexplorer/.FileExplorerTabActivity;end">
+  <span class="label">File Explorer</span>
+  <span class="detail">com.android.fileexplorer</span>
+</a>
+
+<a class="btn" href="intent:#Intent;action=android.settings.MANAGE_ALL_APPLICATIONS_SETTINGS;end">
+  <span class="label">All Apps</span>
+  <span class="detail">android.settings.MANAGE_ALL_APPLICATIONS_SETTINGS</span>
+</a>
+
+<a class="btn" href="intent:#Intent;action=android.settings.MANAGE_APPLICATIONS_SETTINGS;end">
+  <span class="label">App Manager</span>
+  <span class="detail">android.settings.MANAGE_APPLICATIONS_SETTINGS</span>
+</a>
+
+<h2>ADB Commands</h2>
+<pre>
+# Enable developer settings
+adb shell settings put global development_settings_enabled 1
+
+# Enable ADB over WiFi
+adb shell settings put global adb_wifi_enabled 1
+
+# Set USB config to ADB
+adb shell setprop persist.sys.usb.config adb
+
+# Open USB mode chooser
+adb shell am start -n com.android.settings/.connecteddevice.usb.UsbModeChooserActivity
+
+# Open developer options
+adb shell am start -a android.settings.APPLICATION_DEVELOPMENT_SETTINGS
+
+# Open FQC factory test
+adb shell am start -n com.longcheertel.cit/.CitSampleActivity
+</pre>
+
+<div class="toast" id="toast">Copied</div>
+
+<script>
+document.querySelectorAll('.btn').forEach(el=>{
+  el.addEventListener('long-press',function(){
+    const d=el.querySelector('.detail');
+    if(d){navigator.clipboard.writeText(d.textContent).then(()=>flash('Copied'))}
+  });
+});
+function flash(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),1600);
+}
+</script>
+</body>
+</html>
