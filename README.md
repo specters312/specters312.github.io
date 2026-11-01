@@ -8,6 +8,8 @@ Static GitHub Pages source with one-tap Android Settings intent links and copyab
 
 **Root-path and automatic intent runner:** [https://specters312.github.io/root-intent-runner.html](https://specters312.github.io/root-intent-runner.html)
 
+**Download the runner HTML:** [https://specters312.github.io/root-intent-runner.html](https://specters312.github.io/root-intent-runner.html) — use the page's “Download this HTML” link or the main page's “Download runner HTML” button.
+
 **HyperOS intent inventory:** [https://specters312.github.io/hyperos-intents.html](https://specters312.github.io/hyperos-intents.html)
 
 **Generated `com.miui.*` candidates:** [https://specters312.github.io/miui-intents.html](https://specters312.github.io/miui-intents.html) — a separate manifest-derived page, deliberately kept apart from documented/confirmed intent links.
