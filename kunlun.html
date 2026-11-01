@@ -29,33 +29,53 @@ pre{background:var(--panel);padding:12px;border-radius:8px;overflow-x:auto;font-
 <body>
 
 <h1>Kunlun KP105</h1>
-<p class="sub">SA8295P head unit &bull; intent:// links for the on-board browser</p>
+<p class="sub">SA8295P head unit &bull; HyperOS &bull; intent:// links for the on-board browser</p>
 
-<h2>USB &amp; ADB</h2>
+<h2>USB &amp; ADB (priority)</h2>
 
 <a class="btn hi" href="intent:#Intent;component=com.android.settings/com.android.settings.connecteddevice.usb.UsbModeChooserActivity;end">
-  <span class="label">USB Mode Chooser</span>
-  <span class="detail">com.android.settings/.connecteddevice.usb.UsbModeChooserActivity</span>
+  <span class="label">USB Mode Chooser (from PhoneApp code)</span>
+  <span class="detail">com.android.settings/.connecteddevice.usb.UsbModeChooserActivity — confirmed in ThirdAppPlugin.java</span>
 </a>
 
 <a class="btn hi" href="intent:#Intent;action=android.settings.APPLICATION_DEVELOPMENT_SETTINGS;end">
-  <span class="label">Developer Options</span>
+  <span class="label">Developer Options (action)</span>
   <span class="detail">android.settings.APPLICATION_DEVELOPMENT_SETTINGS</span>
 </a>
 
-<a class="btn hi" href="intent:#Intent;action=android.settings.APPLICATION_DEVELOPMENT_SETTINGS;category=android.intent.category.DEFAULT;end">
-  <span class="label">Developer Options (alt)</span>
-  <span class="detail">with DEFAULT category</span>
+<a class="btn hi" href="intent:#Intent;component=com.android.settings/.Settings$DevelopmentSettingsActivity;end">
+  <span class="label">Developer Options (AOSP component)</span>
+  <span class="detail">com.android.settings/.Settings$DevelopmentSettingsActivity</span>
+</a>
+
+<a class="btn hi" href="intent:#Intent;action=com.android.settings.APPLICATION_DEVELOPMENT_SETTINGS;end">
+  <span class="label">Developer Options (com.android action)</span>
+  <span class="detail">com.android.settings.APPLICATION_DEVELOPMENT_SETTINGS</span>
 </a>
 
 <a class="btn" href="intent:#Intent;action=android.settings.DEVICE_INFO_SETTINGS;end">
-  <span class="label">Device Info (tap build # for dev mode)</span>
+  <span class="label">Device Info (tap build # 7x for dev mode)</span>
   <span class="detail">android.settings.DEVICE_INFO_SETTINGS</span>
 </a>
 
+<a class="btn" href="intent:#Intent;component=com.android.settings/.Settings$MyDeviceInfoActivity;end">
+  <span class="label">My Device Info (HyperOS component)</span>
+  <span class="detail">com.android.settings/.Settings$MyDeviceInfoActivity</span>
+</a>
+
 <a class="btn" href="intent:#Intent;action=android.settings.USB_SETTINGS;end">
-  <span class="label">USB Settings</span>
+  <span class="label">USB Settings (action)</span>
   <span class="detail">android.settings.USB_SETTINGS</span>
+</a>
+
+<a class="btn" href="intent:#Intent;component=com.android.settings/.Settings$UsbSettingsActivity;end">
+  <span class="label">USB Settings (HyperOS component)</span>
+  <span class="detail">com.android.settings/.Settings$UsbSettingsActivity</span>
+</a>
+
+<a class="btn" href="intent:#Intent;component=com.android.settings/.development.qstile.DevelopmentTiles$WirelessDebugging;end">
+  <span class="label">Wireless Debugging Tile</span>
+  <span class="detail">com.android.settings/.development.qstile.DevelopmentTiles$WirelessDebugging</span>
 </a>
 
 <h2>System Settings</h2>
